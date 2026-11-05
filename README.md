@@ -21,6 +21,8 @@ The equaliser, the orbiting comet and the ripples are animated vector drawables 
 
 The full player, alive on your home screen: the record spins and ripples with the music, the ring equaliser moves, and the dots move away from your finger as you swipe between pages. Tap the record to play or pause. It only draws while visible, and drops to about 20 fps when the music is paused. Set it from the app with **Set as live wallpaper**.
 
+It sits on top of your own wallpaper photo (Android doesn't let apps read your current wallpaper, so you pick the photo once in the app). The dots can show always or **only while music plays**, fading in when a song starts and away when it stops, and a **Quick Settings tile** switches them on and off from the notification shade. With the dots hidden it's just your photo and draws nothing more.
+
 ## The full-screen player
 
 Tap a widget's record or title, or open it from the app.

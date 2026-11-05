@@ -38,6 +38,17 @@
     <string name="section_wallpaper">Live wallpaper</string>
     <string name="wallpaper_note">The full player, alive on your home screen: the record spins and ripples with the music, and the dots move away from your finger as you swipe between pages. Tap the record to play or pause. It only draws while you can see it, and slows down when the music is paused.</string>
     <string name="set_wallpaper">Set as live wallpaper</string>
+    <string name="pick_photo">Choose background photo</string>
+    <string name="pick_photo_change">Change background photo</string>
+    <string name="photo_note">The dots appear over your own photo. Android doesn\'t let apps read your current wallpaper, so pick the same photo here once.</string>
+    <string name="photo_saved">Background photo set</string>
+    <string name="photo_failed">Couldn\'t use that photo</string>
+    <string name="remove_photo">Use a plain black background</string>
+    <string name="setting_wallpaper_dots">Show the dots on the wallpaper</string>
+    <string name="setting_wallpaper_dots_note">Off: just your photo. Also a Quick Settings tile, so you can flip it from the notification shade.</string>
+    <string name="setting_wallpaper_playing">Only while music plays</string>
+    <string name="setting_wallpaper_playing_note">The dots fade in when a song starts and fade away when it stops.</string>
+    <string name="tile_label">Dot wallpaper</string>
     <string name="wallpaper_description">Your music as a spinning record of dots.</string>
     <string name="widget_small_description">The cover as a spinning record of dots, with play and pause.</string>
     <string name="widget_medium_description">Dot record, title in dots, live equaliser and controls.</string>

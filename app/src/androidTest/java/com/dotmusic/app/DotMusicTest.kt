@@ -67,6 +67,31 @@ class DotMusicTest {
         }
     }
 
+    /** A picked photo is saved, reloaded, and fills the screen; the dots draw see-through over it. */
+    @Test fun wallpaperPhotoShowsThroughTheDots() {
+        val src = java.io.File(context.cacheDir, "pick.png")
+        Bitmap.createBitmap(400, 300, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.rgb(20, 120, 220)) }
+            .let { b -> src.outputStream().use { b.compress(Bitmap.CompressFormat.PNG, 100, it) } }
+        assertTrue(WallpaperPhoto.save(context, android.net.Uri.fromFile(src)))
+        val photo = WallpaperPhoto.load(context)
+        assertNotNull(photo)
+        val screen = Bitmap.createBitmap(540, 1200, Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(screen)
+        WallpaperPhoto.drawCover(canvas, photo!!, 540, 1200, android.graphics.Matrix(), android.graphics.Paint())
+        instrumentation.runOnMainSync {
+            val stage = DotStage(context).apply { showControls = false; gestures = false; opaque = false }
+            stage.resize(540, 1200, 40f, 30f)
+            stage.setTrack(track("Over the photo", Color.YELLOW))
+            stage.frame(1_000_000_000L)
+            stage.draw(canvas)
+        }
+        // A corner far from the record still shows the photo's blue.
+        val corner = screen.getPixel(4, 1190)
+        assertTrue("Photo hidden behind the dots: ${Integer.toHexString(corner)}", Color.blue(corner) > 150)
+        WallpaperPhoto.clear(context)
+        assertTrue(!WallpaperPhoto.exists(context))
+    }
+
     /** The player runs, survives song changes and play/pause, and keeps drawing frames. */
     @Test fun playerRunsThroughSongChanges() {
         ActivityScenario.launch(DotPlayerActivity::class.java).use { scenario ->

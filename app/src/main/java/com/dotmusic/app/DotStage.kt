@@ -42,6 +42,8 @@ class DotStage(private val context: Context, unit: Float? = null) {
     var showControls = true
     /** Flick to skip and tap to pause (off on the wallpaper: those gestures belong to the launcher). */
     var gestures = true
+    /** Paint its own black background (off on the wallpaper, which draws the photo underneath). */
+    var opaque = true
     /** Host hooks: redraw, and a haptic tick (no-op on the wallpaper). */
     var onInvalidate: () -> Unit = {}
     var haptic: (Int) -> Unit = {}
@@ -392,9 +394,11 @@ class DotStage(private val context: Context, unit: Float? = null) {
     // ---------------------------------------------------------------- draw
 
     fun draw(canvas: Canvas) {
-        canvas.drawColor(Color.BLACK)
         val playing = track?.isPlaying == true || demo
-        drawBackdrop(canvas)
+        if (opaque) {
+            canvas.drawColor(Color.BLACK)
+            drawBackdrop(canvas)
+        }
         drawGlow(canvas, playing)
         drawRing(canvas, playing)
         drawRecord(canvas, playing)

@@ -52,6 +52,18 @@
             <meta-data android:name="android.service.wallpaper" android:resource="@xml/wallpaper" />
         </service>
 
+        <!-- Quick Settings tile: dots on the wallpaper on or off. -->
+        <service
+            android:name=".DotTile"
+            android:exported="true"
+            android:icon="@drawable/ic_launcher_foreground"
+            android:label="@string/tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
         <receiver android:name=".WidgetActionReceiver" android:exported="false" />
 
         <receiver android:name=".StageDotWidget" android:exported="false" android:label="@string/widget_stage_name">
