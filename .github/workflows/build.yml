@@ -1,0 +1,85 @@
+name: Build Dot Music
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.13"
+      - name: Build and unit test
+        run: |
+          set -o pipefail
+          gradle --no-daemon :app:testDebugUnitTest :app:assembleRelease 2>&1 | tee gradle.log || {
+            summary=$(grep -E -A4 "^e: |FAILED|What went wrong|error:|AAPT" gradle.log | head -40 | tr '\n' '|' | sed 's/%/%25/g')
+            echo "::error title=Gradle build failed::${summary:0:3800}"
+            exit 1
+          }
+          cp app/build/outputs/apk/release/app-release.apk dot-music.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dot-music-apk
+          path: dot-music.apk
+
+  emulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.13"
+      - name: Enable emulator acceleration
+        run: sudo chmod 666 /dev/kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          script: gradle --no-daemon :app:connectedDebugAndroidTest
+      - name: Report failed tests
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          import glob, xml.etree.ElementTree as ET
+          for path in glob.glob("app/build/outputs/androidTest-results/**/*.xml", recursive=True):
+              for case in ET.parse(path).getroot().iter("testcase"):
+                  for f in list(case.iter("failure")) + list(case.iter("error")):
+                      text = (f.get("message") or f.text or "").strip().splitlines()
+                      print(f"::error title={case.get('name')}::{' | '.join(text[:6])[:900]}")
+          PY
+
+  # One always-current download on the Releases page, easy to grab from the phone.
+  publish:
+    if: github.ref == 'refs/heads/main'
+    needs: [build, emulator]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dot-music-apk
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest dot-music.apk --title "Dot Music (latest build)" \
+            --notes "Built from ${GITHUB_SHA::7}. Install dot-music.apk on your phone."

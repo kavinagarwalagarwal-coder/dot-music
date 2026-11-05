@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dot equaliser: each column rises and falls like a bar. Played by the launcher itself. -->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt">
+<aapt:attr name="android:drawable">
+<vector android:width="50dp" android:height="40dp" android:viewportWidth="50" android:viewportHeight="40">
+<path android:name="c0r0" android:fillColor="#FFFFFFFF" android:pathData="M1.40,35.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c0r1" android:fillColor="#FFFFFFFF" android:fillAlpha="0.14" android:pathData="M1.40,25.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c0r2" android:fillColor="#FFFFFFFF" android:fillAlpha="0.14" android:pathData="M1.40,15.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c0r3" android:fillColor="#FFFFFFFF" android:fillAlpha="0.14" android:pathData="M1.40,5.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c1r0" android:fillColor="#FFFFFFFF" android:pathData="M11.40,35.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c1r1" android:fillColor="#FFFFFFFF" android:fillAlpha="0.14" android:pathData="M11.40,25.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c1r2" android:fillColor="#FFFFFFFF" android:fillAlpha="0.14" android:pathData="M11.40,15.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c1r3" android:fillColor="#FFFFFFFF" android:fillAlpha="0.14" android:pathData="M11.40,5.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c2r0" android:fillColor="#FFFFFFFF" android:pathData="M21.40,35.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c2r1" android:fillColor="#FFFFFFFF" android:fillAlpha="0.14" android:pathData="M21.40,25.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c2r2" android:fillColor="#FFFFFFFF" android:fillAlpha="0.14" android:pathData="M21.40,15.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c2r3" android:fillColor="#FFFFFFFF" android:fillAlpha="0.14" android:pathData="M21.40,5.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c3r0" android:fillColor="#FFFFFFFF" android:pathData="M31.40,35.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c3r1" android:fillColor="#FFFFFFFF" android:fillAlpha="0.14" android:pathData="M31.40,25.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c3r2" android:fillColor="#FFFFFFFF" android:fillAlpha="0.14" android:pathData="M31.40,15.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c3r3" android:fillColor="#FFFFFFFF" android:fillAlpha="0.14" android:pathData="M31.40,5.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c4r0" android:fillColor="#FFFFFFFF" android:pathData="M41.40,35.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c4r1" android:fillColor="#FFFFFFFF" android:fillAlpha="0.14" android:pathData="M41.40,25.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c4r2" android:fillColor="#FFFFFFFF" android:fillAlpha="0.14" android:pathData="M41.40,15.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+<path android:name="c4r3" android:fillColor="#FFFFFFFF" android:fillAlpha="0.14" android:pathData="M41.40,5.00a3.60,3.60 0 1,0 7.20,0a3.60,3.60 0 1,0 -7.20,0"/>
+</vector></aapt:attr>
+<target android:name="c0r1"><aapt:attr name="android:animation">
+<objectAnimator android:duration="1900" android:repeatCount="infinite" android:repeatMode="restart">
+<propertyValuesHolder android:propertyName="fillAlpha"><keyframe android:fraction="0.000" android:value="1.0"/><keyframe android:fraction="0.111" android:value="1.0"/><keyframe android:fraction="0.222" android:value="1.0"/><keyframe android:fraction="0.333" android:value="0.14"/><keyframe android:fraction="0.444" android:value="0.14"/><keyframe android:fraction="0.556" android:value="1.0"/><keyframe android:fraction="0.667" android:value="1.0"/><keyframe android:fraction="0.778" android:value="0.14"/><keyframe android:fraction="0.889" android:value="1.0"/><keyframe android:fraction="1.000" android:value="1.0"/></propertyValuesHolder>
+</objectAnimator></aapt:attr></target>
+<target android:name="c0r2"><aapt:attr name="android:animation">
+<objectAnimator android:duration="1900" android:repeatCount="infinite" android:repeatMode="restart">
+<propertyValuesHolder android:propertyName="fillAlpha"><keyframe android:fraction="0.000" android:value="0.14"/><keyframe android:fraction="0.111" android:value="1.0"/><keyframe android:fraction="0.222" android:value="1.0"/><keyframe android:fraction="0.333" android:value="0.14"/><keyframe android:fraction="0.444" android:value="0.14"/><keyframe android:fraction="0.556" android:value="1.0"/><keyframe android:fraction="0.667" android:value="1.0"/><keyframe android:fraction="0.778" android:value="0.14"/><keyframe android:fraction="0.889" android:value="0.14"/><keyframe android:fraction="1.000" android:value="0.14"/></propertyValuesHolder>
+</objectAnimator></aapt:attr></target>
+<target android:name="c0r3"><aapt:attr name="android:animation">
+<objectAnimator android:duration="1900" android:repeatCount="infinite" android:repeatMode="restart">
+<propertyValuesHolder android:propertyName="fillAlpha"><keyframe android:fraction="0.000" android:value="0.14"/><keyframe android:fraction="0.111" android:value="0.14"/><keyframe android:fraction="0.222" android:value="1.0"/><keyframe android:fraction="0.333" android:value="0.14"/><keyframe android:fraction="0.444" android:value="0.14"/><keyframe android:fraction="0.556" android:value="1.0"/><keyframe android:fraction="0.667" android:value="0.14"/><keyframe android:fraction="0.778" android:value="0.14"/><keyframe android:fraction="0.889" android:value="0.14"/><keyframe android:fraction="1.000" android:value="0.14"/></propertyValuesHolder>
+</objectAnimator></aapt:attr></target>
+<target android:name="c1r1"><aapt:attr name="android:animation">
+<objectAnimator android:duration="2300" android:repeatCount="infinite" android:repeatMode="restart">
+<propertyValuesHolder android:propertyName="fillAlpha"><keyframe android:fraction="0.000" android:value="0.14"/><keyframe android:fraction="0.111" android:value="1.0"/><keyframe android:fraction="0.222" android:value="1.0"/><keyframe android:fraction="0.333" android:value="0.14"/><keyframe android:fraction="0.444" android:value="0.14"/><keyframe android:fraction="0.556" android:value="1.0"/><keyframe android:fraction="0.667" android:value="1.0"/><keyframe android:fraction="0.778" android:value="0.14"/><keyframe android:fraction="0.889" android:value="1.0"/><keyframe android:fraction="1.000" android:value="0.14"/></propertyValuesHolder>
+</objectAnimator></aapt:attr></target>
+<target android:name="c1r2"><aapt:attr name="android:animation">
+<objectAnimator android:duration="2300" android:repeatCount="infinite" android:repeatMode="restart">
+<propertyValuesHolder android:propertyName="fillAlpha"><keyframe android:fraction="0.000" android:value="0.14"/><keyframe android:fraction="0.111" android:value="1.0"/><keyframe android:fraction="0.222" android:value="0.14"/><keyframe android:fraction="0.333" android:value="0.14"/><keyframe android:fraction="0.444" android:value="0.14"/><keyframe android:fraction="0.556" android:value="1.0"/><keyframe android:fraction="0.667" android:value="1.0"/><keyframe android:fraction="0.778" android:value="0.14"/><keyframe android:fraction="0.889" android:value="0.14"/><keyframe android:fraction="1.000" android:value="0.14"/></propertyValuesHolder>
+</objectAnimator></aapt:attr></target>
+<target android:name="c1r3"><aapt:attr name="android:animation">
+<objectAnimator android:duration="2300" android:repeatCount="infinite" android:repeatMode="restart">
+<propertyValuesHolder android:propertyName="fillAlpha"><keyframe android:fraction="0.000" android:value="0.14"/><keyframe android:fraction="0.111" android:value="0.14"/><keyframe android:fraction="0.222" android:value="0.14"/><keyframe android:fraction="0.333" android:value="0.14"/><keyframe android:fraction="0.444" android:value="0.14"/><keyframe android:fraction="0.556" android:value="0.14"/><keyframe android:fraction="0.667" android:value="0.14"/><keyframe android:fraction="0.778" android:value="0.14"/><keyframe android:fraction="0.889" android:value="0.14"/><keyframe android:fraction="1.000" android:value="0.14"/></propertyValuesHolder>
+</objectAnimator></aapt:attr></target>
+<target android:name="c2r1"><aapt:attr name="android:animation">
+<objectAnimator android:duration="1500" android:repeatCount="infinite" android:repeatMode="restart">
+<propertyValuesHolder android:propertyName="fillAlpha"><keyframe android:fraction="0.000" android:value="1.0"/><keyframe android:fraction="0.111" android:value="1.0"/><keyframe android:fraction="0.222" android:value="0.14"/><keyframe android:fraction="0.333" android:value="1.0"/><keyframe android:fraction="0.444" android:value="1.0"/><keyframe android:fraction="0.556" android:value="0.14"/><keyframe android:fraction="0.667" android:value="1.0"/><keyframe android:fraction="0.778" android:value="1.0"/><keyframe android:fraction="0.889" android:value="1.0"/><keyframe android:fraction="1.000" android:value="1.0"/></propertyValuesHolder>
+</objectAnimator></aapt:attr></target>
+<target android:name="c2r2"><aapt:attr name="android:animation">
+<objectAnimator android:duration="1500" android:repeatCount="infinite" android:repeatMode="restart">
+<propertyValuesHolder android:propertyName="fillAlpha"><keyframe android:fraction="0.000" android:value="1.0"/><keyframe android:fraction="0.111" android:value="1.0"/><keyframe android:fraction="0.222" android:value="0.14"/><keyframe android:fraction="0.333" android:value="1.0"/><keyframe android:fraction="0.444" android:value="1.0"/><keyframe android:fraction="0.556" android:value="0.14"/><keyframe android:fraction="0.667" android:value="0.14"/><keyframe android:fraction="0.778" android:value="1.0"/><keyframe android:fraction="0.889" android:value="1.0"/><keyframe android:fraction="1.000" android:value="1.0"/></propertyValuesHolder>
+</objectAnimator></aapt:attr></target>
+<target android:name="c2r3"><aapt:attr name="android:animation">
+<objectAnimator android:duration="1500" android:repeatCount="infinite" android:repeatMode="restart">
+<propertyValuesHolder android:propertyName="fillAlpha"><keyframe android:fraction="0.000" android:value="0.14"/><keyframe android:fraction="0.111" android:value="0.14"/><keyframe android:fraction="0.222" android:value="0.14"/><keyframe android:fraction="0.333" android:value="1.0"/><keyframe android:fraction="0.444" android:value="0.14"/><keyframe android:fraction="0.556" android:value="0.14"/><keyframe android:fraction="0.667" android:value="0.14"/><keyframe android:fraction="0.778" android:value="1.0"/><keyframe android:fraction="0.889" android:value="1.0"/><keyframe android:fraction="1.000" android:value="0.14"/></propertyValuesHolder>
+</objectAnimator></aapt:attr></target>
+<target android:name="c3r1"><aapt:attr name="android:animation">
+<objectAnimator android:duration="2300" android:repeatCount="infinite" android:repeatMode="restart">
+<propertyValuesHolder android:propertyName="fillAlpha"><keyframe android:fraction="0.000" android:value="0.14"/><keyframe android:fraction="0.111" android:value="1.0"/><keyframe android:fraction="0.222" android:value="1.0"/><keyframe android:fraction="0.333" android:value="1.0"/><keyframe android:fraction="0.444" android:value="0.14"/><keyframe android:fraction="0.556" android:value="1.0"/><keyframe android:fraction="0.667" android:value="0.14"/><keyframe android:fraction="0.778" android:value="1.0"/><keyframe android:fraction="0.889" android:value="1.0"/><keyframe android:fraction="1.000" android:value="0.14"/></propertyValuesHolder>
+</objectAnimator></aapt:attr></target>
+<target android:name="c3r2"><aapt:attr name="android:animation">
+<objectAnimator android:duration="2300" android:repeatCount="infinite" android:repeatMode="restart">
+<propertyValuesHolder android:propertyName="fillAlpha"><keyframe android:fraction="0.000" android:value="0.14"/><keyframe android:fraction="0.111" android:value="1.0"/><keyframe android:fraction="0.222" android:value="1.0"/><keyframe android:fraction="0.333" android:value="1.0"/><keyframe android:fraction="0.444" android:value="0.14"/><keyframe android:fraction="0.556" android:value="0.14"/><keyframe android:fraction="0.667" android:value="0.14"/><keyframe android:fraction="0.778" android:value="1.0"/><keyframe android:fraction="0.889" android:value="1.0"/><keyframe android:fraction="1.000" android:value="0.14"/></propertyValuesHolder>
+</objectAnimator></aapt:attr></target>
+<target android:name="c3r3"><aapt:attr name="android:animation">
+<objectAnimator android:duration="2300" android:repeatCount="infinite" android:repeatMode="restart">
+<propertyValuesHolder android:propertyName="fillAlpha"><keyframe android:fraction="0.000" android:value="0.14"/><keyframe android:fraction="0.111" android:value="0.14"/><keyframe android:fraction="0.222" android:value="0.14"/><keyframe android:fraction="0.333" android:value="0.14"/><keyframe android:fraction="0.444" android:value="0.14"/><keyframe android:fraction="0.556" android:value="0.14"/><keyframe android:fraction="0.667" android:value="0.14"/><keyframe android:fraction="0.778" android:value="0.14"/><keyframe android:fraction="0.889" android:value="1.0"/><keyframe android:fraction="1.000" android:value="0.14"/></propertyValuesHolder>
+</objectAnimator></aapt:attr></target>
+<target android:name="c4r1"><aapt:attr name="android:animation">
+<objectAnimator android:duration="1700" android:repeatCount="infinite" android:repeatMode="restart">
+<propertyValuesHolder android:propertyName="fillAlpha"><keyframe android:fraction="0.000" android:value="1.0"/><keyframe android:fraction="0.111" android:value="1.0"/><keyframe android:fraction="0.222" android:value="1.0"/><keyframe android:fraction="0.333" android:value="1.0"/><keyframe android:fraction="0.444" android:value="0.14"/><keyframe android:fraction="0.556" android:value="1.0"/><keyframe android:fraction="0.667" android:value="1.0"/><keyframe android:fraction="0.778" android:value="1.0"/><keyframe android:fraction="0.889" android:value="1.0"/><keyframe android:fraction="1.000" android:value="1.0"/></propertyValuesHolder>
+</objectAnimator></aapt:attr></target>
+<target android:name="c4r2"><aapt:attr name="android:animation">
+<objectAnimator android:duration="1700" android:repeatCount="infinite" android:repeatMode="restart">
+<propertyValuesHolder android:propertyName="fillAlpha"><keyframe android:fraction="0.000" android:value="0.14"/><keyframe android:fraction="0.111" android:value="1.0"/><keyframe android:fraction="0.222" android:value="0.14"/><keyframe android:fraction="0.333" android:value="1.0"/><keyframe android:fraction="0.444" android:value="0.14"/><keyframe android:fraction="0.556" android:value="1.0"/><keyframe android:fraction="0.667" android:value="0.14"/><keyframe android:fraction="0.778" android:value="1.0"/><keyframe android:fraction="0.889" android:value="1.0"/><keyframe android:fraction="1.000" android:value="0.14"/></propertyValuesHolder>
+</objectAnimator></aapt:attr></target>
+<target android:name="c4r3"><aapt:attr name="android:animation">
+<objectAnimator android:duration="1700" android:repeatCount="infinite" android:repeatMode="restart">
+<propertyValuesHolder android:propertyName="fillAlpha"><keyframe android:fraction="0.000" android:value="0.14"/><keyframe android:fraction="0.111" android:value="0.14"/><keyframe android:fraction="0.222" android:value="0.14"/><keyframe android:fraction="0.333" android:value="0.14"/><keyframe android:fraction="0.444" android:value="0.14"/><keyframe android:fraction="0.556" android:value="0.14"/><keyframe android:fraction="0.667" android:value="0.14"/><keyframe android:fraction="0.778" android:value="0.14"/><keyframe android:fraction="0.889" android:value="1.0"/><keyframe android:fraction="1.000" android:value="0.14"/></propertyValuesHolder>
+</objectAnimator></aapt:attr></target>
+</animated-vector>

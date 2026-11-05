@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dot Music</string>
+    <string name="tagline">Your music, as a spinning record of dots. Add it to your home screen, or open the player and play with it: flick the record to skip, tap to pause, drag your finger through the dots.</string>
+    <string name="open_player">Open the full-screen player</string>
+
+    <string name="section_setup">Setup</string>
+    <string name="access_off">Allow notification access</string>
+    <string name="access_on">✓ Notification access allowed</string>
+    <string name="access_note">Android only lets apps see what\'s playing through notification access. Dot Music uses it to read the song, cover and play state of your music app. It has no internet access, so nothing ever leaves your phone.</string>
+
+    <string name="section_widgets">Widgets</string>
+    <string name="widgets_note">Three sizes. Tap one to drop it on your home screen. The equaliser, the orbiting comet and the ripples are played by your launcher itself, so they cost almost no battery.</string>
+    <string name="add_small">Add the 2×2 record</string>
+    <string name="add_medium">Add the 4×2 player</string>
+    <string name="add_wide">Add the 4×1 strip</string>
+    <string name="pin_unsupported">Your launcher can\'t add widgets from an app. Long-press your home screen, choose Widgets, and find Dot Music.</string>
+
+    <string name="section_style">Style</string>
+    <string name="setting_mono">White dots</string>
+    <string name="setting_mono_note">Draw the cover in white dots, Nothing style, instead of its own colours.</string>
+    <string name="setting_animations">Widget animations</string>
+    <string name="setting_animations_note">The dot equaliser, orbiting comet and ripples on the widgets while music plays.</string>
+    <string name="setting_beat">React to the real beat</string>
+    <string name="setting_beat_note">The player ripples and the ring moves with the actual music. Android files this under the microphone permission, but the app only measures how loud each frequency is and never records anything. Off: a steady pulse instead.</string>
+
+    <string name="privacy">No internet permission. No accounts. Nothing is stored or sent anywhere.</string>
+
+    <string name="player_idle">Nothing playing</string>
+    <string name="player_idle_hint">Play something</string>
+
+    <string name="widget_small_name">Dot record</string>
+    <string name="widget_medium_name">Dot player</string>
+    <string name="widget_wide_name">Dot strip</string>
+    <string name="widget_small_description">The cover as a spinning record of dots, with play and pause.</string>
+    <string name="widget_medium_description">Dot record, title in dots, live equaliser and controls.</string>
+    <string name="widget_wide_description">A live dot equaliser, the title in dots, play and next.</string>
+    <string name="widget_idle">Nothing playing</string>
+    <string name="widget_idle_hint">Play some music</string>
+    <string name="widget_art">Album cover in dots. Opens the player.</string>
+    <string name="widget_title">Song title</string>
+    <string name="action_play_pause">Play or pause</string>
+    <string name="action_next">Next song</string>
+    <string name="action_previous">Previous song</string>
+</resources>

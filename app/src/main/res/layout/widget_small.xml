@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 2×2: the dot record fills the tile, the comet orbits, ripples pulse around the play button. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg"
+    android:padding="8dp">
+
+    <ImageView
+        android:id="@+id/art"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="10dp"
+        android:contentDescription="@string/widget_art"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_launcher_foreground" />
+
+    <ProgressBar
+        android:id="@+id/orbit"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="true"
+        android:indeterminateDrawable="@drawable/dot_orbit" />
+
+    <ProgressBar
+        android:id="@+id/pulse"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        android:indeterminateDrawable="@drawable/dot_pulse" />
+
+    <ImageButton
+        android:id="@+id/play"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_gravity="center"
+        android:background="@drawable/play_bg"
+        android:contentDescription="@string/action_play_pause"
+        android:padding="15dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_dot_play" />
+</FrameLayout>

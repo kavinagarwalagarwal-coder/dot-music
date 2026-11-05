@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Rings of dots rippling out from the play button while music plays. -->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt">
+<aapt:attr name="android:drawable">
+<vector android:width="100dp" android:height="100dp" android:viewportWidth="100" android:viewportHeight="100">
+<group android:name="g0" android:pivotX="50" android:pivotY="50"><path android:name="p0_0" android:fillColor="#FFFFFFFF" android:pathData="M77.80,50.00a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_1" android:fillColor="#FFFFFFFF" android:pathData="M76.33,59.27a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_2" android:fillColor="#FFFFFFFF" android:pathData="M72.07,67.63a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_3" android:fillColor="#FFFFFFFF" android:pathData="M65.43,74.27a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_4" android:fillColor="#FFFFFFFF" android:pathData="M57.07,78.53a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_5" android:fillColor="#FFFFFFFF" android:pathData="M47.80,80.00a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_6" android:fillColor="#FFFFFFFF" android:pathData="M38.53,78.53a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_7" android:fillColor="#FFFFFFFF" android:pathData="M30.17,74.27a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_8" android:fillColor="#FFFFFFFF" android:pathData="M23.53,67.63a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_9" android:fillColor="#FFFFFFFF" android:pathData="M19.27,59.27a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_10" android:fillColor="#FFFFFFFF" android:pathData="M17.80,50.00a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_11" android:fillColor="#FFFFFFFF" android:pathData="M19.27,40.73a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_12" android:fillColor="#FFFFFFFF" android:pathData="M23.53,32.37a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_13" android:fillColor="#FFFFFFFF" android:pathData="M30.17,25.73a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_14" android:fillColor="#FFFFFFFF" android:pathData="M38.53,21.47a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_15" android:fillColor="#FFFFFFFF" android:pathData="M47.80,20.00a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_16" android:fillColor="#FFFFFFFF" android:pathData="M57.07,21.47a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_17" android:fillColor="#FFFFFFFF" android:pathData="M65.43,25.73a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_18" android:fillColor="#FFFFFFFF" android:pathData="M72.07,32.37a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p0_19" android:fillColor="#FFFFFFFF" android:pathData="M76.33,40.73a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/></group><group android:name="g1" android:pivotX="50" android:pivotY="50"><path android:name="p1_0" android:fillColor="#FFFFFFFF" android:pathData="M77.80,50.00a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_1" android:fillColor="#FFFFFFFF" android:pathData="M76.33,59.27a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_2" android:fillColor="#FFFFFFFF" android:pathData="M72.07,67.63a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_3" android:fillColor="#FFFFFFFF" android:pathData="M65.43,74.27a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_4" android:fillColor="#FFFFFFFF" android:pathData="M57.07,78.53a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_5" android:fillColor="#FFFFFFFF" android:pathData="M47.80,80.00a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_6" android:fillColor="#FFFFFFFF" android:pathData="M38.53,78.53a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_7" android:fillColor="#FFFFFFFF" android:pathData="M30.17,74.27a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_8" android:fillColor="#FFFFFFFF" android:pathData="M23.53,67.63a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_9" android:fillColor="#FFFFFFFF" android:pathData="M19.27,59.27a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_10" android:fillColor="#FFFFFFFF" android:pathData="M17.80,50.00a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_11" android:fillColor="#FFFFFFFF" android:pathData="M19.27,40.73a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_12" android:fillColor="#FFFFFFFF" android:pathData="M23.53,32.37a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_13" android:fillColor="#FFFFFFFF" android:pathData="M30.17,25.73a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_14" android:fillColor="#FFFFFFFF" android:pathData="M38.53,21.47a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_15" android:fillColor="#FFFFFFFF" android:pathData="M47.80,20.00a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_16" android:fillColor="#FFFFFFFF" android:pathData="M57.07,21.47a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_17" android:fillColor="#FFFFFFFF" android:pathData="M65.43,25.73a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_18" android:fillColor="#FFFFFFFF" android:pathData="M72.07,32.37a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/><path android:name="p1_19" android:fillColor="#FFFFFFFF" android:pathData="M76.33,40.73a2.20,2.20 0 1,0 4.40,0a2.20,2.20 0 1,0 -4.40,0"/></group>
+</vector></aapt:attr>
+<target android:name="g0"><aapt:attr name="android:animation"><set>
+<objectAnimator android:propertyName="scaleX" android:valueFrom="0.75" android:valueTo="1.5" android:duration="1600" android:startOffset="0" android:repeatCount="infinite" android:interpolator="@android:interpolator/decelerate_quad"/>
+<objectAnimator android:propertyName="scaleY" android:valueFrom="0.75" android:valueTo="1.5" android:duration="1600" android:startOffset="0" android:repeatCount="infinite" android:interpolator="@android:interpolator/decelerate_quad"/>
+</set></aapt:attr></target>
+<target android:name="p0_0"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_1"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_2"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_3"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_4"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_5"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_6"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_7"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_8"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_9"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_10"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_11"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_12"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_13"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_14"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_15"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_16"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_17"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_18"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p0_19"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="0" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="g1"><aapt:attr name="android:animation"><set>
+<objectAnimator android:propertyName="scaleX" android:valueFrom="0.75" android:valueTo="1.5" android:duration="1600" android:startOffset="800" android:repeatCount="infinite" android:interpolator="@android:interpolator/decelerate_quad"/>
+<objectAnimator android:propertyName="scaleY" android:valueFrom="0.75" android:valueTo="1.5" android:duration="1600" android:startOffset="800" android:repeatCount="infinite" android:interpolator="@android:interpolator/decelerate_quad"/>
+</set></aapt:attr></target>
+<target android:name="p1_0"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_1"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_2"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_3"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_4"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_5"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_6"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_7"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_8"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_9"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_10"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_11"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_12"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_13"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_14"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_15"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_16"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_17"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_18"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+<target android:name="p1_19"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="fillAlpha" android:valueFrom="0.8" android:valueTo="0" android:duration="1600" android:startOffset="800" android:repeatCount="infinite"/>
+</aapt:attr></target>
+</animated-vector>

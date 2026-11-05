@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A comet of dots orbiting the record while music plays. -->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt">
+<aapt:attr name="android:drawable">
+<vector android:width="100dp" android:height="100dp" android:viewportWidth="100" android:viewportHeight="100">
+<group android:name="spin" android:pivotX="50" android:pivotY="50">
+<path android:fillColor="#FFFF3B30" android:fillAlpha="1.00" android:pathData="M46.60,4.00a3.40,3.40 0 1,0 6.80,0a3.40,3.40 0 1,0 -6.80,0"/>
+<path android:fillColor="#FFFFFFFF" android:fillAlpha="0.94" android:pathData="M37.93,4.85a3.29,3.29 0 1,0 6.58,0a3.29,3.29 0 1,0 -6.58,0"/>
+<path android:fillColor="#FFFFFFFF" android:fillAlpha="0.89" android:pathData="M29.59,7.35a3.18,3.18 0 1,0 6.36,0a3.18,3.18 0 1,0 -6.36,0"/>
+<path android:fillColor="#FFFFFFFF" android:fillAlpha="0.83" android:pathData="M21.88,11.42a3.07,3.07 0 1,0 6.14,0a3.07,3.07 0 1,0 -6.14,0"/>
+<path android:fillColor="#FFFFFFFF" android:fillAlpha="0.78" android:pathData="M15.09,16.91a2.96,2.96 0 1,0 5.92,0a2.96,2.96 0 1,0 -5.92,0"/>
+<path android:fillColor="#FFFFFFFF" android:fillAlpha="0.72" android:pathData="M9.47,23.62a2.85,2.85 0 1,0 5.70,0a2.85,2.85 0 1,0 -5.70,0"/>
+<path android:fillColor="#FFFFFFFF" android:fillAlpha="0.67" android:pathData="M5.24,31.29a2.74,2.74 0 1,0 5.48,0a2.74,2.74 0 1,0 -5.48,0"/>
+<path android:fillColor="#FFFFFFFF" android:fillAlpha="0.61" android:pathData="M2.55,39.65a2.63,2.63 0 1,0 5.26,0a2.63,2.63 0 1,0 -5.26,0"/>
+<path android:fillColor="#FFFFFFFF" android:fillAlpha="0.56" android:pathData="M1.51,48.39a2.52,2.52 0 1,0 5.04,0a2.52,2.52 0 1,0 -5.04,0"/>
+<path android:fillColor="#FFFFFFFF" android:fillAlpha="0.50" android:pathData="M2.16,57.20a2.41,2.41 0 1,0 4.82,0a2.41,2.41 0 1,0 -4.82,0"/>
+<path android:fillColor="#FFFFFFFF" android:fillAlpha="0.44" android:pathData="M4.47,65.73a2.30,2.30 0 1,0 4.60,0a2.30,2.30 0 1,0 -4.60,0"/>
+<path android:fillColor="#FFFFFFFF" android:fillAlpha="0.39" android:pathData="M8.38,73.69a2.19,2.19 0 1,0 4.38,0a2.19,2.19 0 1,0 -4.38,0"/>
+<path android:fillColor="#FFFFFFFF" android:fillAlpha="0.33" android:pathData="M13.74,80.78a2.08,2.08 0 1,0 4.16,0a2.08,2.08 0 1,0 -4.16,0"/>
+<path android:fillColor="#FFFFFFFF" android:fillAlpha="0.28" android:pathData="M20.35,86.74a1.97,1.97 0 1,0 3.94,0a1.97,1.97 0 1,0 -3.94,0"/>
+<path android:fillColor="#FFFFFFFF" android:fillAlpha="0.22" android:pathData="M27.97,91.34a1.86,1.86 0 1,0 3.72,0a1.86,1.86 0 1,0 -3.72,0"/>
+<path android:fillColor="#FFFFFFFF" android:fillAlpha="0.17" android:pathData="M36.34,94.43a1.75,1.75 0 1,0 3.50,0a1.75,1.75 0 1,0 -3.50,0"/>
+<path android:fillColor="#FFFFFFFF" android:fillAlpha="0.11" android:pathData="M45.15,95.89a1.64,1.64 0 1,0 3.28,0a1.64,1.64 0 1,0 -3.28,0"/>
+<path android:fillColor="#FFFFFFFF" android:fillAlpha="0.06" android:pathData="M54.08,95.66a1.53,1.53 0 1,0 3.06,0a1.53,1.53 0 1,0 -3.06,0"/>
+</group></vector></aapt:attr>
+<target android:name="spin"><aapt:attr name="android:animation">
+<objectAnimator android:propertyName="rotation" android:valueFrom="0" android:valueTo="360" android:duration="2800"
+ android:repeatCount="infinite" android:repeatMode="restart" android:interpolator="@android:anim/linear_interpolator"/>
+</aapt:attr></target>
+</animated-vector>
