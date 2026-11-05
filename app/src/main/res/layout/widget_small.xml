@@ -21,7 +21,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:indeterminate="true"
-        android:indeterminateDrawable="@drawable/dot_orbit" />
+        android:indeterminateDrawable="@drawable/dot_orbit"
+                android:indeterminateOnly="true" />
 
     <ProgressBar
         android:id="@+id/pulse"
@@ -29,7 +30,8 @@
         android:layout_height="96dp"
         android:layout_gravity="center"
         android:indeterminate="true"
-        android:indeterminateDrawable="@drawable/dot_pulse" />
+        android:indeterminateDrawable="@drawable/dot_pulse"
+        android:indeterminateOnly="true" />
 
     <ImageButton
         android:id="@+id/play"

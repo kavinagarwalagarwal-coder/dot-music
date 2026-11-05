@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 4×4 stage: the player screen as a widget. The record and its equaliser ring are drawn by the
+     same code as the app; the comet and the ripples running through it are played by the launcher. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <ImageView
+                android:id="@+id/art"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/widget_art"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_launcher_foreground" />
+
+            <ProgressBar
+                android:id="@+id/pulse"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:indeterminate="true"
+                android:indeterminateDrawable="@drawable/dot_pulse"
+                android:indeterminateOnly="true" />
+
+            <ProgressBar
+                android:id="@+id/orbit"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:indeterminate="true"
+                android:indeterminateDrawable="@drawable/dot_orbit"
+                android:indeterminateOnly="true" />
+        </FrameLayout>
+
+        <ImageView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:layout_marginTop="6dp"
+            android:contentDescription="@string/widget_title"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/artist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:fontFamily="monospace"
+            android:gravity="center"
+            android:maxLines="1"
+            android:text="@string/app_name"
+            android:textColor="#AAFFFFFF"
+            android:textSize="12sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
+
+            <ImageView
+                android:id="@+id/progress"
+                android:layout_width="0dp"
+                android:layout_height="10dp"
+                android:layout_weight="1"
+                android:importantForAccessibility="no"
+                android:scaleType="fitCenter" />
+
+            <Chronometer
+                android:id="@+id/time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:fontFamily="monospace"
+                android:textColor="#99FFFFFF"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="2dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/prev"
+                android:layout_width="64dp"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/action_previous"
+                android:padding="13dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_dot_prev" />
+
+            <ImageButton
+                android:id="@+id/play"
+                android:layout_width="72dp"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/action_play_pause"
+                android:padding="10dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_dot_play" />
+
+            <ImageButton
+                android:id="@+id/next"
+                android:layout_width="64dp"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/action_next"
+                android:padding="13dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_dot_next" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

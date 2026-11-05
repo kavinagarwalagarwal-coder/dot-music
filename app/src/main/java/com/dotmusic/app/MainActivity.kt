@@ -78,7 +78,18 @@ class MainActivity : Activity(), MusicCenter.Observer {
         column.addView(body(getString(R.string.widgets_note)))
         column.addView(button(getString(R.string.add_small)) { pin(SmallDotWidget::class.java) })
         column.addView(button(getString(R.string.add_medium)) { pin(MediumDotWidget::class.java) })
+        column.addView(button(getString(R.string.add_stage)) { pin(StageDotWidget::class.java) })
         column.addView(button(getString(R.string.add_wide)) { pin(WideDotWidget::class.java) })
+
+        column.addView(heading(getString(R.string.section_wallpaper), 20f))
+        column.addView(body(getString(R.string.wallpaper_note)))
+        column.addView(button(getString(R.string.set_wallpaper)) {
+            val intent = Intent(android.app.WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER)
+                .putExtra(android.app.WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT, ComponentName(this, DotWallpaper::class.java))
+            runCatching { startActivity(intent) }.onFailure {
+                runCatching { startActivity(Intent(android.app.WallpaperManager.ACTION_LIVE_WALLPAPER_CHOOSER)) }
+            }
+        })
 
         column.addView(heading(getString(R.string.section_style), 20f))
         column.addView(toggle(R.string.setting_mono, R.string.setting_mono_note, DotPrefs.mono(this)) {

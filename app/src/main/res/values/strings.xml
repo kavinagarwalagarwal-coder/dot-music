@@ -10,7 +10,7 @@
     <string name="access_note">Android only lets apps see what\'s playing through notification access. Dot Music uses it to read the song, cover and play state of your music app. It has no internet access, so nothing ever leaves your phone.</string>
 
     <string name="section_widgets">Widgets</string>
-    <string name="widgets_note">Three sizes. Tap one to drop it on your home screen. The equaliser, the orbiting comet and the ripples are played by your launcher itself, so they cost almost no battery.</string>
+    <string name="widgets_note">Four sizes. Tap one to drop it on your home screen. The equaliser, the orbiting comet and the ripples are played by your launcher itself, so they cost almost no battery.</string>
     <string name="add_small">Add the 2×2 record</string>
     <string name="add_medium">Add the 4×2 player</string>
     <string name="add_wide">Add the 4×1 strip</string>
@@ -32,6 +32,13 @@
     <string name="widget_small_name">Dot record</string>
     <string name="widget_medium_name">Dot player</string>
     <string name="widget_wide_name">Dot strip</string>
+    <string name="widget_stage_name">Dot stage</string>
+    <string name="widget_stage_description">The player screen as a widget: the dot record with its equaliser ring, comet and ripples, title, progress and controls.</string>
+    <string name="add_stage">Add the 4×4 stage</string>
+    <string name="section_wallpaper">Live wallpaper</string>
+    <string name="wallpaper_note">The full player, alive on your home screen: the record spins and ripples with the music, and the dots move away from your finger as you swipe between pages. Tap the record to play or pause. It only draws while you can see it, and slows down when the music is paused.</string>
+    <string name="set_wallpaper">Set as live wallpaper</string>
+    <string name="wallpaper_description">Your music as a spinning record of dots.</string>
     <string name="widget_small_description">The cover as a spinning record of dots, with play and pause.</string>
     <string name="widget_medium_description">Dot record, title in dots, live equaliser and controls.</string>
     <string name="widget_wide_description">A live dot equaliser, the title in dots, play and next.</string>

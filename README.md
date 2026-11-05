@@ -13,8 +13,13 @@ A home-screen music widget and full-screen player in a dot-matrix style inspired
 | **2×2 record** | The cover as a dot record, a comet of dots orbiting it, rings of dots rippling out of the play button. |
 | **4×2 player** | Dot record with its comet, the title set in dots, a live dot equaliser, a dot progress bar, the clock, previous / play / next. |
 | **4×1 strip** | Live dot equaliser, title in dots, play and next. |
+| **4×4 stage** | The player screen as a widget: the dot record inside its equaliser ring, drawn by the player's own code, with the comet orbiting and ripples running through it, plus title, progress and controls. |
 
 The equaliser, the orbiting comet and the ripples are animated vector drawables that your launcher plays by itself, so they stay smooth and cost almost no battery. They run only while music plays. The progress bar steps forward every few seconds, and only while the screen is on.
+
+## Live wallpaper
+
+The full player, alive on your home screen: the record spins and ripples with the music, the ring equaliser moves, and the dots move away from your finger as you swipe between pages. Tap the record to play or pause. It only draws while visible, and drops to about 20 fps when the music is paused. Set it from the app with **Set as live wallpaper**.
 
 ## The full-screen player
 
@@ -31,7 +36,7 @@ Tap a widget's record or title, or open it from the app.
 
 1. Install the APK from [Releases](../../releases/tag/latest).
 2. Open Dot Music and tap **Allow notification access**. This is how Android lets an app see what's playing.
-3. Tap **Add the 2×2 record**, **Add the 4×2 player** or **Add the 4×1 strip** to drop a widget on your home screen.
+3. Tap one of the **Add the…** buttons to drop a widget on your home screen, or **Set as live wallpaper**.
 
 Works with any music app that shows media controls: Spotify, YouTube Music, Apple Music, PixelPlayer and others.
 

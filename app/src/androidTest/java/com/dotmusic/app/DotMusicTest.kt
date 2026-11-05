@@ -29,7 +29,7 @@ class DotMusicTest {
 
     /** Every widget, playing, paused and idle, inflates the way a launcher would inflate it. */
     @Test fun everyWidgetInflatesLikeOnAHomeScreen() {
-        val layouts = listOf(R.layout.widget_small, R.layout.widget_medium, R.layout.widget_wide)
+        val layouts = listOf(R.layout.widget_small, R.layout.widget_medium, R.layout.widget_wide, R.layout.widget_stage)
         val states = listOf(track("Midnight City", Color.rgb(230, 60, 120)), track("Paused", Color.BLUE, playing = false), null)
         instrumentation.runOnMainSync {
             for (layout in layouts) for (state in states) {
@@ -39,6 +39,31 @@ class DotMusicTest {
                 host.addView(inflated)
                 assertNotNull(inflated.findViewById(R.id.play))
             }
+        }
+    }
+
+    /** The 4×4 widget's record is drawn by the player's own code, and actually has dots on it. */
+    @Test fun stageSnapshotHasTheRecordAndRing() {
+        instrumentation.runOnMainSync {
+            val stage = DotStage(context, unit = 330 / 360f)
+            stage.setTrack(track("Snapshot", Color.rgb(255, 120, 0)))
+            val picture = stage.snapshot(330)
+            val px = IntArray(330 * 330).also { picture.getPixels(it, 0, 330, 0, 0, 330, 330) }
+            val lit = px.count { Color.alpha(it) > 200 }
+            assertTrue("Snapshot looks empty: $lit lit pixels", lit > 2_000)
+        }
+    }
+
+    /** The wallpaper's version (no controls, no skip gestures) runs and draws without a window. */
+    @Test fun wallpaperStageDrawsHeadless() {
+        instrumentation.runOnMainSync {
+            val stage = DotStage(context).apply { showControls = false; gestures = false }
+            stage.resize(1080, 2400, 80f, 60f)
+            stage.setTrack(track("Wallpaper", Color.CYAN))
+            val canvas = android.graphics.Canvas(Bitmap.createBitmap(1080, 2400, Bitmap.Config.ARGB_8888))
+            var now = 1_000_000_000L
+            repeat(90) { now += 16_666_667L; stage.frame(now); stage.draw(canvas) }
+            assertTrue(stage.tapAt(540f, -10_000f).not())
         }
     }
 

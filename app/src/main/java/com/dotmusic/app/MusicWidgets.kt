@@ -27,6 +27,7 @@ abstract class DotWidget(val layout: Int) : AppWidgetProvider() {
 class SmallDotWidget : DotWidget(R.layout.widget_small)
 class MediumDotWidget : DotWidget(R.layout.widget_medium)
 class WideDotWidget : DotWidget(R.layout.widget_wide)
+class StageDotWidget : DotWidget(R.layout.widget_stage)
 
 /** Play/pause, next and previous from a widget, sent to the playing app's media session. */
 class WidgetActionReceiver : BroadcastReceiver() {
@@ -41,6 +42,7 @@ object MusicWidgets {
         SmallDotWidget::class.java to R.layout.widget_small,
         MediumDotWidget::class.java to R.layout.widget_medium,
         WideDotWidget::class.java to R.layout.widget_wide,
+        StageDotWidget::class.java to R.layout.widget_stage,
     )
 
     // Pictures are drawn once per song (and style) and reused for every widget and update.
@@ -48,6 +50,8 @@ object MusicWidgets {
     private var disc: Bitmap? = null
     private var title: Bitmap? = null
     private var titleWide: Bitmap? = null
+    private var stageFor: String? = null
+    private var stage: Bitmap? = null
 
     private fun ids(context: Context, cls: Class<*>): IntArray =
         AppWidgetManager.getInstance(context).getAppWidgetIds(ComponentName(context, cls))
@@ -66,11 +70,13 @@ object MusicWidgets {
     fun refreshProgress(context: Context) {
         val track = MusicCenter.current ?: return
         val manager = AppWidgetManager.getInstance(context)
-        val ids = ids(context, MediumDotWidget::class.java)
-        if (ids.isEmpty()) return
-        val views = RemoteViews(context.packageName, R.layout.widget_medium)
-        progress(views, track)
-        runCatching { manager.partiallyUpdateAppWidget(ids, views) }
+        for ((cls, layout) in listOf(MediumDotWidget::class.java to R.layout.widget_medium, StageDotWidget::class.java to R.layout.widget_stage)) {
+            val ids = ids(context, cls)
+            if (ids.isEmpty()) continue
+            val views = RemoteViews(context.packageName, layout)
+            progress(views, track)
+            runCatching { manager.partiallyUpdateAppWidget(ids, views) }
+        }
     }
 
     internal fun render(context: Context, cls: Class<*>, layout: Int, ids: IntArray, track: Track?, full: Boolean) {
@@ -87,10 +93,14 @@ object MusicWidgets {
         val playing = track?.isPlaying == true
         val animate = playing && DotPrefs.animations(context)
 
-        if (layout != R.layout.widget_wide) views.setImageViewBitmap(R.id.art, disc)
+        when (layout) {
+            R.layout.widget_stage -> views.setImageViewBitmap(R.id.art, stagePicture(context, track, mono))
+            R.layout.widget_wide -> Unit
+            else -> views.setImageViewBitmap(R.id.art, disc)
+        }
         when (layout) {
             R.layout.widget_wide -> titleWide?.let { views.setImageViewBitmap(R.id.title, it) }
-            R.layout.widget_medium -> title?.let { views.setImageViewBitmap(R.id.title, it) }
+            R.layout.widget_medium, R.layout.widget_stage -> title?.let { views.setImageViewBitmap(R.id.title, it) }
         }
         views.setTextViewText(R.id.artist, track?.artist?.ifBlank { null } ?: context.getString(
             if (track == null) R.string.widget_idle_hint else R.string.app_name))
@@ -113,7 +123,7 @@ object MusicWidgets {
         views.setOnClickPendingIntent(R.id.title, player)
         if (layout != R.layout.widget_small) views.setOnClickPendingIntent(R.id.root, player)
 
-        if (layout == R.layout.widget_medium) progress(views, track)
+        if (layout == R.layout.widget_medium || layout == R.layout.widget_stage) progress(views, track)
         return views
     }
 
@@ -136,6 +146,22 @@ object MusicWidgets {
         title = DotArt.text(label.uppercase(), 9, 5f, color, 64)
         titleWide = DotArt.text(label.uppercase(), 9, 5f, color, 80)
     }
+
+    /** The record and its ring, drawn by the player's own code; once per song and play state. */
+    private fun stagePicture(context: Context, track: Track?, mono: Boolean): Bitmap? {
+        val key = "${track?.id}|${track?.art?.generationId}|${track?.isPlaying}|$mono"
+        if (key == stageFor && stage != null) return stage
+        stageFor = key
+        stage = runCatching {
+            DotStage(context, unit = STAGE_SIZE / 360f).run {
+                setTrack(track)
+                snapshot(STAGE_SIZE)
+            }
+        }.getOrNull()
+        return stage
+    }
+
+    private const val STAGE_SIZE = 330
 
     private fun action(context: Context, c: MusicCenter.Command): PendingIntent =
         PendingIntent.getBroadcast(context, c.ordinal + 10,
