@@ -24,6 +24,8 @@ import android.widget.Toast
 class MainActivity : Activity(), MusicCenter.Observer {
     private lateinit var preview: DotPlayerView
     private lateinit var access: Button
+    private lateinit var photoButton: Button
+    private lateinit var removePhoto: Button
     private val d by lazy { resources.displayMetrics.density }
     private val doto: Typeface by lazy {
         runCatching { Typeface.Builder(assets, "fonts/Doto.ttf").setFontVariationSettings("'wght' 900, 'ROND' 100").build() }
@@ -78,7 +80,34 @@ class MainActivity : Activity(), MusicCenter.Observer {
         column.addView(body(getString(R.string.widgets_note)))
         column.addView(button(getString(R.string.add_small)) { pin(SmallDotWidget::class.java) })
         column.addView(button(getString(R.string.add_medium)) { pin(MediumDotWidget::class.java) })
+        column.addView(button(getString(R.string.add_stage)) { pin(StageDotWidget::class.java) })
         column.addView(button(getString(R.string.add_wide)) { pin(WideDotWidget::class.java) })
+
+        column.addView(heading(getString(R.string.section_wallpaper), 20f))
+        column.addView(body(getString(R.string.wallpaper_note)))
+        column.addView(body(getString(R.string.photo_note)))
+        photoButton = button(getString(R.string.pick_photo)) {
+            runCatching {
+                startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/*"), PICK_PHOTO)
+            }
+        }
+        column.addView(photoButton)
+        removePhoto = button(getString(R.string.remove_photo)) { WallpaperPhoto.clear(this); refreshPhoto() }
+        column.addView(removePhoto)
+        refreshPhoto()
+        column.addView(toggle(R.string.setting_wallpaper_dots, R.string.setting_wallpaper_dots_note, DotPrefs.wallpaperDots(this)) {
+            DotPrefs.setWallpaperDots(this, it)
+        })
+        column.addView(toggle(R.string.setting_wallpaper_playing, R.string.setting_wallpaper_playing_note, DotPrefs.wallpaperOnlyPlaying(this)) {
+            DotPrefs.setWallpaperOnlyPlaying(this, it)
+        })
+        column.addView(button(getString(R.string.set_wallpaper)) {
+            val intent = Intent(android.app.WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER)
+                .putExtra(android.app.WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT, ComponentName(this, DotWallpaper::class.java))
+            runCatching { startActivity(intent) }.onFailure {
+                runCatching { startActivity(Intent(android.app.WallpaperManager.ACTION_LIVE_WALLPAPER_CHOOSER)) }
+            }
+        })
 
         column.addView(heading(getString(R.string.section_style), 20f))
         column.addView(toggle(R.string.setting_mono, R.string.setting_mono_note, DotPrefs.mono(this)) {
@@ -96,6 +125,22 @@ class MainActivity : Activity(), MusicCenter.Observer {
 
         column.addView(body(getString(R.string.privacy)).apply { setPadding(0, (28 * d).toInt(), 0, 0) })
         return ScrollView(this).apply { setBackgroundColor(Color.BLACK); addView(column) }
+    }
+
+    @Deprecated("Activity result API needs androidx; the platform callback is enough here.")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != PICK_PHOTO || resultCode != RESULT_OK) return
+        val uri = data?.data ?: return
+        val ok = WallpaperPhoto.save(this, uri)
+        Toast.makeText(this, if (ok) R.string.photo_saved else R.string.photo_failed, Toast.LENGTH_SHORT).show()
+        refreshPhoto()
+    }
+
+    private fun refreshPhoto() {
+        val has = WallpaperPhoto.exists(this)
+        photoButton.text = getString(if (has) R.string.pick_photo_change else R.string.pick_photo)
+        removePhoto.visibility = if (has) View.VISIBLE else View.GONE
     }
 
     /** Mono/colour changes the whole palette; rebuild the preview's record with it. */
@@ -148,5 +193,9 @@ class MainActivity : Activity(), MusicCenter.Observer {
             setOnCheckedChangeListener { _, on -> onChange(on) }
         })
         addView(body(getString(note)))
+    }
+
+    private companion object {
+        const val PICK_PHOTO = 7
     }
 }
