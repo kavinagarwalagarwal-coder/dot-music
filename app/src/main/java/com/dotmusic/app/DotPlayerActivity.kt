@@ -156,21 +156,24 @@ class DotPlayerActivity : Activity(), MusicCenter.Observer, Taste.Observer {
         if (!::nextBar.isInitialized) return
         val pick = Taste.nextPick()
         when {
-            !MusicListener.enabled(this) -> showBar(R.string.bar_setup, getString(R.string.bar_setup_text)) {
+            !MusicListener.enabled(this) -> showBar(getString(R.string.bar_setup, PlayerApp.name(this)), getString(R.string.bar_setup_text)) {
                 startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
             }
-            !YouTubeMusic.installed(this) -> showBar(R.string.bar_get, getString(R.string.get_yt_music_note)) { YouTubeMusic.getIt(this) }
+            !PlayerApp.installed(this) -> showBar(getString(R.string.get_player, PlayerApp.name(this)),
+                getString(R.string.get_player_note, PlayerApp.name(this))) { PlayerApp.getIt(this) }
             pick != null -> showBar(if (DotPrefs.dj(this)) R.string.bar_next_dj else R.string.bar_next,
                 if (pick.kind == TasteEngine.Kind.ARTIST) getString(R.string.artist_mix, pick.artist) else "${pick.title} — ${pick.artist}") {
-                if (!YouTubeMusic.play(this, pick)) android.widget.Toast.makeText(this, R.string.yt_unreachable, android.widget.Toast.LENGTH_LONG).show()
+                DotUi.reported(this, PlayerApp.play(this, pick))
             }
             MusicCenter.current == null -> showBar(R.string.bar_start, getString(R.string.bar_start_text)) { panel.show() }
             else -> showBar(R.string.bar_learning, getString(R.string.bar_learning_text)) { panel.show() }
         }
     }
 
-    private fun showBar(label: Int, text: String, action: () -> Unit) {
-        nextLabel.text = getString(label).uppercase()
+    private fun showBar(label: Int, text: String, action: () -> Unit) = showBar(getString(label), text, action)
+
+    private fun showBar(label: String, text: String, action: () -> Unit) {
+        nextLabel.text = label.uppercase()
         nextText.text = text
         nextAction = action
     }

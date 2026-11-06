@@ -97,7 +97,7 @@ class DotMusicTest {
         val now = System.currentTimeMillis()
         val listens = (1..6).flatMap { d ->
             listOf("Alpha" to "Ann", "Bravo" to "Ben", "Charlie" to "Cat").mapIndexed { i, (t, a) ->
-                Listen(now - d * 86_400_000L + i * 205_000L, t, a, YouTubeMusic.PACKAGE, 200_000, 200_000, false, 20, false)
+                Listen(now - d * 86_400_000L + i * 205_000L, t, a, PlayerApp.YT_MUSIC, 200_000, 200_000, false, 20, false)
             }
         }
         val engine = TasteEngine(listens, now)

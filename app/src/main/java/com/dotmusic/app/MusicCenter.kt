@@ -24,8 +24,13 @@ object MusicCenter {
     /** Set by [MusicListener] while it is connected. */
     internal var controls: ((Command) -> Unit)? = null
     internal var seeker: ((Long) -> Unit)? = null
-    /** Asks YouTube Music's session to play from a search; false if it isn't there or can't. */
-    internal var searcher: ((String, android.os.Bundle) -> Boolean)? = null
+    /** Asks an app's session to play from a search (package, query, extras); false if it isn't there or can't. */
+    internal var searcher: ((String, String, android.os.Bundle) -> Boolean)? = null
+    /** What an app's media session supports, for the settings check. */
+    internal var inspector: ((String) -> SessionInfo?)? = null
+    internal var sessionLister: (() -> List<String>)? = null
+
+    data class SessionInfo(val actions: Long, val hasTitle: Boolean, val hasArt: Boolean, val hasQueue: Boolean)
     internal var queueReader: (() -> List<QueueEntry>)? = null
     internal var queueJumper: ((Long) -> Unit)? = null
 
@@ -48,15 +53,18 @@ object MusicCenter {
             Taste.noteSkip()
             // "Dot picks the next song": skip to Dot's pick instead of the app's queue.
             val ctx = app
-            if (ctx != null && DotPrefs.dj(ctx) && YouTubeMusic.isPlayingThere()) {
+            if (ctx != null && DotPrefs.dj(ctx) && PlayerApp.isPlayingThere(ctx)) {
                 val pick = Taste.nextPick()
-                if (pick != null && YouTubeMusic.playInSession(pick)) return
+                if (pick != null && PlayerApp.playInSession(ctx, pick)) return
             }
         }
         controls?.invoke(c)
     }
 
-    fun playFromSearch(query: String, extras: android.os.Bundle): Boolean = searcher?.invoke(query, extras) == true
+    fun playFromSearch(pkg: String, query: String, extras: android.os.Bundle): Boolean = searcher?.invoke(pkg, query, extras) == true
+    fun sessionInfo(pkg: String): SessionInfo? = inspector?.invoke(pkg)
+    /** Apps with a media session right now. */
+    fun sessionPackages(): List<String> = sessionLister?.invoke().orEmpty()
 
     /** Up next in the playing app, if it shares its queue. */
     fun queue(): List<QueueEntry> = queueReader?.invoke().orEmpty()

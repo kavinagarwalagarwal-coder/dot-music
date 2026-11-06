@@ -2,9 +2,13 @@
 
 **A full-screen dot player for YouTube Music, with recommendations that learn on your phone.**
 
-Open the app and you're in the player: the album cover becomes a spinning record made of hundreds of dots, in a dot-matrix style inspired by Nothing. YouTube Music does the playing, with your account, your library and background play. Dot is the screen, the controls and the picks.
+Open the app and you're in the player: the album cover becomes a spinning record made of hundreds of dots, in a dot-matrix style inspired by Nothing. Another app does the playing: YouTube Music by default, or any player you choose (Dot Player, Spotify, JioSaavn…). Dot is the screen, the controls and the picks.
 
 [**⬇ Download the latest APK**](../../releases/tag/latest) · Android 8.0+ · Needs [YouTube Music](https://play.google.com/store/apps/details?id=com.google.android.apps.youtube.music) · No internet permission
+
+## Choosing the player app
+
+Settings → **Player app** lists the music players on your phone. Dot follows and controls the one you pick through Android's standard media controls, and sends its picks there. **Check what the player app supports** shows exactly what that app allows (song info, cover, seek, queue, and whether it can start songs while you stay in Dot), with a **Send a test song** button. Apps that can't take songs in the background are opened instead; apps that take no requests at all can still be shown, controlled and learned from.
 
 ## Playing through YouTube Music
 

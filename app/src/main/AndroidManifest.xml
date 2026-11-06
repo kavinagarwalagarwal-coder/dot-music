@@ -7,11 +7,28 @@
     <!-- No INTERNET permission: nothing leaves the phone. -->
     <uses-feature android:name="android.software.live_wallpaper" android:required="false" />
 
-    <!-- YouTube Music plays the music; Dot needs to see that it's installed and hand it songs. -->
+    <!-- Another app plays the music; Dot needs to find music players and hand them songs. -->
     <queries>
         <package android:name="com.google.android.apps.youtube.music" />
+        <package android:name="com.creepsmile.dotplayer" />
+        <package android:name="com.spotify.music" />
+        <package android:name="com.jio.media.jiobeats" />
+        <package android:name="com.gaana" />
+        <package android:name="com.bsbportal.music" />
+        <package android:name="com.apple.android.music" />
+        <package android:name="com.amazon.mp3" />
+        <package android:name="deezer.android.app" />
         <intent>
             <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+        </intent>
+        <intent>
+            <action android:name="android.media.browse.MediaBrowserService" />
+        </intent>
+        <intent>
+            <action android:name="androidx.media3.session.MediaSessionService" />
+        </intent>
+        <intent>
+            <action android:name="androidx.media3.session.MediaLibraryService" />
         </intent>
     </queries>
 
