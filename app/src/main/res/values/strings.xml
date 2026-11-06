@@ -132,7 +132,8 @@
     <string name="check_library">Has a music library Dot can search</string>
     <string name="check_legend">Dot starts songs by searching the app\'s library first (the way Android Auto does), then by asking it to play a search. Some apps tick a box but ignore the request: Send a test song checks that the song really changed.</string>
     <string name="lib_no_service">this app has no music library for other apps</string>
-    <string name="lib_timeout">no answer in 10 seconds</string>
+    <string name="lib_timeout_connect">the app never answered the connection (20 seconds)</string>
+    <string name="lib_timeout_search">connected (library \"%1$s\"), but the search never answered (20 seconds)</string>
     <string name="lib_no_results">searched, but nothing playable came back (%1$d results)</string>
     <string name="lib_started">found the song and asked the app to play it</string>
     <string name="lib_play_failed">found the song, but the app refused to play it</string>

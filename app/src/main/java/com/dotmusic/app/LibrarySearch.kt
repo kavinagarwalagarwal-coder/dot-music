@@ -32,6 +32,8 @@ object LibrarySearch {
         val component = service(ctx, pkg) ?: return done(Result(false, ctx.getString(R.string.lib_no_service)))
         var browser: MediaBrowserCompat? = null
         var finished = false
+        /** Which step a timeout happened in, so the test can say what stalled. */
+        var phase = ctx.getString(R.string.lib_timeout_connect)
         lateinit var timeout: Runnable
         fun finish(r: Result, linger: Long = 0) {
             if (finished) return
@@ -41,11 +43,12 @@ object LibrarySearch {
             main.postDelayed({ runCatching { browser?.disconnect() } }, linger)
             done(r)
         }
-        timeout = Runnable { finish(Result(false, ctx.getString(R.string.lib_timeout))) }
+        timeout = Runnable { finish(Result(false, phase)) }
 
         browser = MediaBrowserCompat(ctx, component, object : MediaBrowserCompat.ConnectionCallback() {
             override fun onConnected() {
                 val b = browser ?: return
+                phase = ctx.getString(R.string.lib_timeout_search, b.root.orEmpty().ifBlank { "?" })
                 runCatching {
                     b.search(query, Bundle(), object : MediaBrowserCompat.SearchCallback() {
                         override fun onSearchResult(q: String, extras: Bundle?, items: List<MediaBrowserCompat.MediaItem>) {
@@ -83,5 +86,5 @@ object LibrarySearch {
             ?: items.first()
     }
 
-    private const val TIMEOUT_MS = 10_000L
+    private const val TIMEOUT_MS = 20_000L
 }
