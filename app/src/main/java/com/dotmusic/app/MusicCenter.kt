@@ -55,7 +55,10 @@ object MusicCenter {
             val ctx = app
             if (ctx != null && DotPrefs.dj(ctx) && PlayerApp.isPlayingThere(ctx)) {
                 val pick = Taste.nextPick()
-                if (pick != null && PlayerApp.playInSession(ctx, pick)) return
+                if (pick != null) {
+                    PlayerApp.playQuietly(ctx, pick) { ok -> if (!ok) controls?.invoke(Command.NEXT) }
+                    return
+                }
             }
         }
         controls?.invoke(c)

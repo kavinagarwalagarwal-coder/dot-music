@@ -33,7 +33,10 @@ object PlayerApp {
     )
 
     /** How a song request reached the player app. */
-    enum class Route { SESSION, INTENT, SEARCH_PAGE, OPENED_APP, NONE }
+    enum class Route { LIBRARY, SESSION, INTENT, SEARCH_PAGE, OPENED_APP, NONE }
+
+    /** The outcome of a play request, with what each step did (shown by the test song). */
+    data class Outcome(val route: Route, val steps: List<String>, val found: String? = null)
 
     fun chosen(context: Context): String = DotPrefs.playerPackage(context)
 
@@ -47,35 +50,64 @@ object PlayerApp {
     fun isPlayingThere(context: Context): Boolean = MusicCenter.current?.packageName == chosen(context)
 
     /** Play a recommendation on the chosen app. */
-    fun play(context: Context, pick: TasteEngine.Pick): Route =
-        if (pick.kind == TasteEngine.Kind.ARTIST) play(context, pick.query, null, pick.artist, artistOnly = true)
-        else play(context, pick.query, pick.title, pick.artist, artistOnly = false)
+    fun play(context: Context, pick: TasteEngine.Pick, done: (Outcome) -> Unit = {}) =
+        if (pick.kind == TasteEngine.Kind.ARTIST) play(context, pick.query, null, pick.artist, artistOnly = true, done = done)
+        else play(context, pick.query, pick.title, pick.artist, artistOnly = false, done = done)
 
-    /** Only through the running session (safe from the background, e.g. a widget's Next). */
-    fun playInSession(context: Context, pick: TasteEngine.Pick): Boolean {
+    /**
+     * Without opening anything (safe from the background, e.g. a widget's Next): the app's library,
+     * then its media session. [done] gets false if neither took it.
+     */
+    fun playQuietly(context: Context, pick: TasteEngine.Pick, done: (Boolean) -> Unit) {
+        val pkg = chosen(context)
         val artistOnly = pick.kind == TasteEngine.Kind.ARTIST
-        return MusicCenter.playFromSearch(chosen(context), pick.query,
-            extras(pick.query, pick.title.takeIf { !artistOnly }, pick.artist, artistOnly))
+        val title = pick.title.takeIf { !artistOnly }
+        LibrarySearch.play(context, pkg, pick.query, title, pick.artist) { r ->
+            done(r.ok || MusicCenter.playFromSearch(pkg, pick.query, extras(pick.query, title, pick.artist, artistOnly)))
+        }
     }
 
-    /** Play whatever matches [query]; most apps play the best result and keep similar songs going after it. */
-    fun play(context: Context, query: String, title: String? = null, artist: String? = null, artistOnly: Boolean = false): Route {
+    /**
+     * Play whatever matches [query], trying in order: search the app's library and play the exact
+     * result; ask its media session to play from a search; send the search as an intent (opens the
+     * app); YouTube Music's search page; or just open the app. [done] runs on the main thread.
+     */
+    fun play(
+        context: Context, query: String, title: String? = null, artist: String? = null, artistOnly: Boolean = false,
+        done: (Outcome) -> Unit = {},
+    ) {
         val q = query.trim()
-        if (q.isEmpty()) return Route.NONE
+        if (q.isEmpty()) return done(Outcome(Route.NONE, emptyList()))
         val pkg = chosen(context)
+        val steps = ArrayList<String>()
+        LibrarySearch.play(context, pkg, q, title.takeIf { !artistOnly }, artist) { r ->
+            steps += context.getString(R.string.step_library, r.detail)
+            done(if (r.ok) Outcome(Route.LIBRARY, steps, r.found) else fallback(context, pkg, q, title, artist, artistOnly, steps))
+        }
+    }
+
+    private fun fallback(
+        context: Context, pkg: String, q: String, title: String?, artist: String?, artistOnly: Boolean, steps: MutableList<String>,
+    ): Outcome {
         val extras = extras(q, title, artist, artistOnly)
-        // 1. Straight to its media session: no app switch.
-        if (MusicCenter.playFromSearch(pkg, q, extras)) return Route.SESSION
-        // 2. The same request as an intent: the app opens and plays.
-        if (start(context, searchIntent(pkg, extras))) return Route.INTENT
-        // 3. YouTube Music's own search page.
+        // Its media session: no app switch, but some apps advertise this and ignore it.
+        if (MusicCenter.playFromSearch(pkg, q, extras)) {
+            steps += context.getString(R.string.step_session_sent)
+            return Outcome(Route.SESSION, steps)
+        }
+        steps += context.getString(R.string.step_session_no)
+        if (start(context, searchIntent(pkg, extras))) {
+            steps += context.getString(R.string.step_intent_sent)
+            return Outcome(Route.INTENT, steps)
+        }
+        steps += context.getString(R.string.step_intent_no)
         if (pkg == YT_MUSIC) {
             val page = Intent(Intent.ACTION_VIEW, Uri.parse("https://music.youtube.com/search?q=" + Uri.encode(q)))
                 .setPackage(YT_MUSIC).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            if (start(context, page)) return Route.SEARCH_PAGE
+            if (start(context, page)) return Outcome(Route.SEARCH_PAGE, steps)
         }
-        // 4. At least open it, so you can search there.
-        return if (open(context, pkg)) Route.OPENED_APP else Route.NONE
+        return if (open(context, pkg)) Outcome(Route.OPENED_APP, steps + context.getString(R.string.step_opened))
+        else Outcome(Route.NONE, steps)
     }
 
     fun open(context: Context, pkg: String = chosen(context)): Boolean =
@@ -125,6 +157,7 @@ object PlayerApp {
             Check(c.getString(R.string.check_play_pause), has(PlaybackState.ACTION_PLAY_PAUSE)?.let { it || has(PlaybackState.ACTION_PLAY) == true }),
             Check(c.getString(R.string.check_skip), has(PlaybackState.ACTION_SKIP_TO_NEXT)),
             Check(c.getString(R.string.check_seek), has(PlaybackState.ACTION_SEEK_TO)),
+            Check(c.getString(R.string.check_library), LibrarySearch.service(context, pkg) != null),
             Check(c.getString(R.string.check_search_session), has(PlaybackState.ACTION_PLAY_FROM_SEARCH)),
             Check(c.getString(R.string.check_search_intent), intentOk),
             Check(c.getString(R.string.check_queue), s?.let { it.hasQueue }),

@@ -38,9 +38,9 @@ object DotUi {
         }, null)
 
     /** Tell the person when a song couldn't start quietly in the player app. */
-    fun reported(c: Context, route: PlayerApp.Route) {
+    fun reported(c: Context, outcome: PlayerApp.Outcome) {
         val app = PlayerApp.name(c)
-        when (route) {
+        when (outcome.route) {
             PlayerApp.Route.OPENED_APP -> Toast.makeText(c, c.getString(R.string.player_opened, app), Toast.LENGTH_LONG).show()
             PlayerApp.Route.NONE -> Toast.makeText(c, c.getString(R.string.player_unreachable, app), Toast.LENGTH_LONG).show()
             else -> {}
@@ -161,14 +161,14 @@ class ForYouPanel(context: Context) : FrameLayout(context), Taste.Observer {
     }
 
     private fun play(p: TasteEngine.Pick) {
-        DotUi.reported(context, PlayerApp.play(context, p))
+        PlayerApp.play(context, p) { DotUi.reported(context, it) }
         hide()
     }
 
     private fun playSearch(q: String) {
         if (q.isBlank()) return
         keyboard(false)
-        DotUi.reported(context, PlayerApp.play(context, q))
+        PlayerApp.play(context, q) { DotUi.reported(context, it) }
         search.setText("")
         hide()
     }

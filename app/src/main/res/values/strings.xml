@@ -122,7 +122,6 @@
     <string name="check_search_intent">Start songs from Dot, by opening the app</string>
     <string name="check_queue">Shares its queue</string>
     <string name="check_play_first">\? means Dot can\'t tell yet. Play a song in %1$s, come back and check again: apps only show what they support while music is loaded.</string>
-    <string name="check_legend">If starting songs while staying in Dot is ✗ but opening the app is ✓, tapping a pick opens %1$s and plays it there. If both are ✗, Dot still shows, controls and learns from %1$s, and picks open it so you can search.</string>
     <string name="check_test">Send a test song</string>
     <string name="check_test_query">Blinding Lights The Weeknd</string>
     <string name="route_session">Sent to %1$s in the background. Did it start playing?</string>
@@ -130,4 +129,24 @@
     <string name="route_page">Opened the search in %1$s.</string>
     <string name="route_opened">%1$s doesn\'t take songs from other apps, so Dot just opened it.</string>
     <string name="route_none">Couldn\'t reach %1$s.</string>
+    <string name="check_library">Has a music library Dot can search</string>
+    <string name="check_legend">Dot starts songs by searching the app\'s library first (the way Android Auto does), then by asking it to play a search. Some apps tick a box but ignore the request: Send a test song checks that the song really changed.</string>
+    <string name="lib_no_service">this app has no music library for other apps</string>
+    <string name="lib_timeout">no answer in 10 seconds</string>
+    <string name="lib_no_results">searched, but nothing playable came back (%1$d results)</string>
+    <string name="lib_started">found the song and asked the app to play it</string>
+    <string name="lib_play_failed">found the song, but the app refused to play it</string>
+    <string name="lib_search_unsupported">connected, but the app doesn\'t let other apps search</string>
+    <string name="lib_refused">the app didn\'t let Dot connect</string>
+    <string name="step_library">Library search: %1$s</string>
+    <string name="step_session_sent">Media session: sent \"play this search\" (the app may ignore it)</string>
+    <string name="step_session_no">Media session: the app doesn\'t take searches</string>
+    <string name="step_intent_sent">Opened the app with the search</string>
+    <string name="step_intent_no">Opening the app with the search: not supported</string>
+    <string name="step_opened">Opened the app instead</string>
+    <string name="test_title">Test song</string>
+    <string name="test_sending">Sending a test song to %1$s…</string>
+    <string name="test_worked">It worked: now playing %1$s.</string>
+    <string name="test_nothing">%1$s didn\'t change the song. Send a screenshot of this to Claude.</string>
+    <string name="test_found">Matched in the library: %1$s</string>
 </resources>
