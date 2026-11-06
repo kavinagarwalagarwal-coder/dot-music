@@ -31,11 +31,15 @@ object DotPrefs {
     fun beat(c: Context) = p(c).getBoolean("beat", false)
     fun setBeat(c: Context, on: Boolean) = p(c).edit().putBoolean("beat", on).apply()
 
-    /** Follow only YouTube Music, never other apps' sessions. */
-    fun ytOnly(c: Context) = p(c).getBoolean("yt_only", false)
-    fun setYtOnly(c: Context, on: Boolean) = p(c).edit().putBoolean("yt_only", on).apply()
+    /** The app that plays the music (YouTube Music unless you pick another). */
+    fun playerPackage(c: Context): String = p(c).getString("player_package", null) ?: PlayerApp.YT_MUSIC
+    fun setPlayerPackage(c: Context, pkg: String) = p(c).edit().putString("player_package", pkg).apply()
 
-    /** Next goes to Dot's own pick instead of YouTube Music's queue. */
+    /** Follow only the player app, never other apps' sessions. */
+    fun playerOnly(c: Context) = p(c).getBoolean("player_only", false)
+    fun setPlayerOnly(c: Context, on: Boolean) = p(c).edit().putBoolean("player_only", on).apply()
+
+    /** Next goes to Dot's own pick instead of the player app's queue. */
     fun dj(c: Context) = p(c).getBoolean("dj", false)
     fun setDj(c: Context, on: Boolean) = p(c).edit().putBoolean("dj", on).apply()
 

@@ -27,7 +27,7 @@ class MusicListener : NotificationListenerService() {
     private var controller: MediaController? = null
     private var latest: List<MediaController> = emptyList()
     private val prefsChanged = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        if (key == "yt_only") refreshSessions()
+        if (key == "player_only" || key == "player_package") refreshSessions()
     }
     private var artFor: String? = null
     private var art: Bitmap? = null
@@ -51,6 +51,8 @@ class MusicListener : NotificationListenerService() {
         MusicCenter.controls = ::control
         MusicCenter.seeker = { ms -> controller?.transportControls?.seekTo(ms.coerceAtLeast(0)) }
         MusicCenter.searcher = ::playFromSearch
+        MusicCenter.inspector = ::inspect
+        MusicCenter.sessionLister = { latest.map { it.packageName }.distinct() }
         MusicCenter.queueReader = ::queue
         MusicCenter.queueJumper = { id -> controller?.transportControls?.skipToQueueItem(id) }
         DotPrefs.listen(this, prefsChanged)
@@ -70,6 +72,8 @@ class MusicListener : NotificationListenerService() {
         MusicCenter.controls = null
         MusicCenter.seeker = null
         MusicCenter.searcher = null
+        MusicCenter.inspector = null
+        MusicCenter.sessionLister = null
         MusicCenter.queueReader = null
         MusicCenter.queueJumper = null
         MusicCenter.publish(null)
@@ -82,17 +86,18 @@ class MusicListener : NotificationListenerService() {
     }
 
     /**
-     * Prefer YouTube Music while it plays, then whatever else is playing; otherwise keep the most
-     * recent session (Android lists newest first). "Only YouTube Music" ignores every other app.
+     * Prefer the player app while it plays, then whatever else is playing; otherwise keep the most
+     * recent session (Android lists newest first). "Only follow" ignores every other app.
      */
     private fun choose(list: List<MediaController>) {
         latest = list
-        val pool = if (DotPrefs.ytOnly(this)) list.filter { it.packageName == YouTubeMusic.PACKAGE } else list
+        val mine = PlayerApp.chosen(this)
+        val pool = if (DotPrefs.playerOnly(this)) list.filter { it.packageName == mine } else list
         fun playing(c: MediaController) = c.playbackState?.state == PlaybackState.STATE_PLAYING
-        val pick = pool.firstOrNull { playing(it) && it.packageName == YouTubeMusic.PACKAGE }
+        val pick = pool.firstOrNull { playing(it) && it.packageName == mine }
             ?: pool.firstOrNull { playing(it) }
             ?: pool.firstOrNull { it.sessionToken == controller?.sessionToken }
-            ?: pool.firstOrNull { it.packageName == YouTubeMusic.PACKAGE }
+            ?: pool.firstOrNull { it.packageName == mine }
             ?: pool.firstOrNull()
         if (pick?.sessionToken != controller?.sessionToken) setController(pick)
         publishSoon()
@@ -115,15 +120,32 @@ class MusicListener : NotificationListenerService() {
         }
     }
 
-    /** Ask YouTube Music's own session to find and play something, if it's running and can. */
-    private fun playFromSearch(query: String, extras: android.os.Bundle): Boolean {
-        val yt = latest.firstOrNull { it.packageName == YouTubeMusic.PACKAGE }
-            ?: runCatching { sessions?.getActiveSessions(ComponentName(this, MusicListener::class.java)) }.getOrNull()
-                ?.firstOrNull { it.packageName == YouTubeMusic.PACKAGE }
-            ?: return false
-        val actions = yt.playbackState?.actions ?: 0L
+    private fun sessionOf(pkg: String): MediaController? = latest.firstOrNull { it.packageName == pkg }
+        ?: runCatching { sessions?.getActiveSessions(ComponentName(this, MusicListener::class.java)) }.getOrNull()
+            ?.firstOrNull { it.packageName == pkg }
+
+    /** Ask an app's own session to find and play something, if it's running and can. */
+    private fun playFromSearch(pkg: String, query: String, extras: android.os.Bundle): Boolean {
+        val ctl = sessionOf(pkg) ?: return false
+        val actions = ctl.playbackState?.actions ?: 0L
         if ((actions and PlaybackState.ACTION_PLAY_FROM_SEARCH) == 0L) return false
-        return runCatching { yt.transportControls.playFromSearch(query, extras); true }.getOrDefault(false)
+        return runCatching { ctl.transportControls.playFromSearch(query, extras); true }.getOrDefault(false)
+    }
+
+    private fun inspect(pkg: String): MusicCenter.SessionInfo? {
+        val ctl = sessionOf(pkg) ?: return null
+        val meta = ctl.metadata
+        val title = meta?.getString(MediaMetadata.METADATA_KEY_TITLE) ?: meta?.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE)
+        val art = meta != null && (sequenceOf(MediaMetadata.METADATA_KEY_ALBUM_ART, MediaMetadata.METADATA_KEY_ART,
+            MediaMetadata.METADATA_KEY_DISPLAY_ICON).any { meta.getBitmap(it) != null } ||
+            sequenceOf(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, MediaMetadata.METADATA_KEY_ART_URI,
+                MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI).any { !meta.getString(it).isNullOrBlank() })
+        return MusicCenter.SessionInfo(
+            actions = ctl.playbackState?.actions ?: 0L,
+            hasTitle = !title.isNullOrBlank(),
+            hasArt = art,
+            hasQueue = runCatching { !ctl.queue.isNullOrEmpty() }.getOrDefault(false),
+        )
     }
 
     private fun queue(): List<MusicCenter.QueueEntry> {

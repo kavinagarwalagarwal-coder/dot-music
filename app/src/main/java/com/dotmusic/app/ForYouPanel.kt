@@ -37,6 +37,16 @@ object DotUi {
             cornerRadius = dp(c, radius); setColor(fill); setStroke(dp(c, 1f).toInt(), Color.argb(36, 255, 255, 255))
         }, null)
 
+    /** Tell the person when a song couldn't start quietly in the player app. */
+    fun reported(c: Context, route: PlayerApp.Route) {
+        val app = PlayerApp.name(c)
+        when (route) {
+            PlayerApp.Route.OPENED_APP -> Toast.makeText(c, c.getString(R.string.player_opened, app), Toast.LENGTH_LONG).show()
+            PlayerApp.Route.NONE -> Toast.makeText(c, c.getString(R.string.player_unreachable, app), Toast.LENGTH_LONG).show()
+            else -> {}
+        }
+    }
+
     /** A stable colour per artist, for the little dot beside each pick. */
     fun artistColor(name: String): Int {
         val hue = ((SongKeys.norm(name).hashCode() and 0x7fffffff) % 360).toFloat()
@@ -76,7 +86,7 @@ class ForYouPanel(context: Context) : FrameLayout(context), Taste.Observer {
         column.addView(header)
 
         search = EditText(context).apply {
-            hint = context.getString(R.string.search_hint)
+            hint = context.getString(R.string.search_hint, PlayerApp.name(context))
             setHintTextColor(Color.argb(120, 255, 255, 255)); setTextColor(Color.WHITE); textSize = 16f
             isSingleLine = true; inputType = InputType.TYPE_CLASS_TEXT
             imeOptions = EditorInfo.IME_ACTION_SEARCH
@@ -88,13 +98,14 @@ class ForYouPanel(context: Context) : FrameLayout(context), Taste.Observer {
             }
         }
         column.addView(search, LinearLayout.LayoutParams(-1, dp(52f).toInt()).apply { topMargin = dp(14f).toInt() })
-        column.addView(note(context.getString(R.string.search_note)))
+        column.addView(note(context.getString(R.string.search_note, PlayerApp.name(context))))
         column.addView(shelvesBox)
     }
 
     val showing get() = visibility == VISIBLE
 
     fun show() {
+        search.hint = context.getString(R.string.search_hint, PlayerApp.name(context))
         visibility = VISIBLE
         alpha = 0f; translationY = dp(40f)
         animate().alpha(1f).translationY(0f).setDuration(220).start()
@@ -113,9 +124,10 @@ class ForYouPanel(context: Context) : FrameLayout(context), Taste.Observer {
 
     private fun render(s: TasteEngine.Shelves) {
         shelvesBox.removeAllViews()
-        if (!YouTubeMusic.installed(context)) {
-            shelvesBox.addView(action(context.getString(R.string.get_yt_music), context.getString(R.string.get_yt_music_note)) {
-                YouTubeMusic.getIt(context)
+        if (!PlayerApp.installed(context)) {
+            val app = PlayerApp.name(context)
+            shelvesBox.addView(action(context.getString(R.string.get_player, app), context.getString(R.string.get_player_note, app)) {
+                PlayerApp.getIt(context)
             })
         }
         if (s.listens < 3) {
@@ -149,14 +161,14 @@ class ForYouPanel(context: Context) : FrameLayout(context), Taste.Observer {
     }
 
     private fun play(p: TasteEngine.Pick) {
-        if (!YouTubeMusic.play(context, p)) Toast.makeText(context, R.string.yt_unreachable, Toast.LENGTH_LONG).show()
+        DotUi.reported(context, PlayerApp.play(context, p))
         hide()
     }
 
     private fun playSearch(q: String) {
         if (q.isBlank()) return
         keyboard(false)
-        if (!YouTubeMusic.play(context, q)) Toast.makeText(context, R.string.yt_unreachable, Toast.LENGTH_LONG).show()
+        DotUi.reported(context, PlayerApp.play(context, q))
         search.setText("")
         hide()
     }

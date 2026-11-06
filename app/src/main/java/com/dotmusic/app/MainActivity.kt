@@ -23,7 +23,8 @@ import android.widget.Toast
 /** Settings: connecting YouTube Music, recommendations, widgets, the live wallpaper and style. */
 class MainActivity : Activity() {
     private lateinit var access: Button
-    private lateinit var ytButton: Button
+    private lateinit var playerButton: Button
+    private lateinit var openButton: Button
     private lateinit var forget: Button
     private lateinit var photoButton: Button
     private lateinit var removePhoto: Button
@@ -46,8 +47,7 @@ class MainActivity : Activity() {
         val ok = MusicListener.enabled(this)
         access.text = getString(if (ok) R.string.access_on else R.string.access_off)
         access.alpha = if (ok) 0.6f else 1f
-        val yt = YouTubeMusic.installed(this)
-        ytButton.text = getString(if (yt) R.string.open_yt_music else R.string.get_yt_music)
+        refreshPlayer()
         forget.text = getString(R.string.forget_history, Taste.count())
     }
 
@@ -59,14 +59,19 @@ class MainActivity : Activity() {
         column.addView(heading(getString(R.string.settings_title).uppercase(), 34f))
         column.addView(body(getString(R.string.tagline)))
 
-        column.addView(heading(getString(R.string.section_youtube), 20f))
-        column.addView(body(getString(R.string.youtube_note)))
+        column.addView(heading(getString(R.string.section_player), 20f))
+        column.addView(body(getString(R.string.player_note)))
+        playerButton = button("") { choosePlayer() }
+        column.addView(playerButton)
         access = button(getString(R.string.access_off)) { startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
         column.addView(access)
         column.addView(body(getString(R.string.access_note)))
-        ytButton = button(getString(R.string.open_yt_music)) { YouTubeMusic.open(this) }
-        column.addView(ytButton)
-        column.addView(toggle(R.string.setting_yt_only, R.string.setting_yt_only_note, DotPrefs.ytOnly(this)) { DotPrefs.setYtOnly(this, it) })
+        openButton = button("") { if (!PlayerApp.open(this)) PlayerApp.getIt(this) }
+        column.addView(openButton)
+        column.addView(button(getString(R.string.check_button)) { showChecks() })
+        column.addView(toggle(R.string.setting_player_only, R.string.setting_player_only_note, DotPrefs.playerOnly(this)) {
+            DotPrefs.setPlayerOnly(this, it)
+        })
 
         column.addView(heading(getString(R.string.section_recs), 20f))
         column.addView(body(getString(R.string.recs_note)))
@@ -149,6 +154,55 @@ class MainActivity : Activity() {
         val has = WallpaperPhoto.exists(this)
         photoButton.text = getString(if (has) R.string.pick_photo_change else R.string.pick_photo)
         removePhoto.visibility = if (has) View.VISIBLE else View.GONE
+    }
+
+    private fun refreshPlayer() {
+        val app = PlayerApp.name(this)
+        playerButton.text = getString(R.string.player_choose, app)
+        openButton.text = getString(if (PlayerApp.installed(this)) R.string.player_open else R.string.get_player, app)
+    }
+
+    /** Pick which app plays the music. */
+    private fun choosePlayer() {
+        val pkgs = PlayerApp.candidates(this)
+        val names = pkgs.map { pkg ->
+            PlayerApp.name(this, pkg) + if (PlayerApp.installed(this, pkg)) "" else " " + getString(R.string.player_not_installed)
+        }.toTypedArray()
+        android.app.AlertDialog.Builder(this)
+            .setTitle(R.string.player_pick_title)
+            .setSingleChoiceItems(names, pkgs.indexOf(PlayerApp.chosen(this))) { dialog, which ->
+                DotPrefs.setPlayerPackage(this, pkgs[which])
+                refreshPlayer()
+                Taste.refresh()
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /** What the chosen app lets Dot do, and a test song. */
+    private fun showChecks() {
+        val app = PlayerApp.name(this)
+        val lines = PlayerApp.checks(this).joinToString("\n") { c ->
+            (when (c.ok) { true -> "✓  "; false -> "✗  "; null -> "?  " }) + c.label
+        }
+        val unknown = MusicCenter.sessionInfo(PlayerApp.chosen(this)) == null
+        val message = lines + "\n\n" + getString(if (unknown) R.string.check_play_first else R.string.check_legend, app)
+        android.app.AlertDialog.Builder(this)
+            .setTitle(getString(R.string.check_title, app))
+            .setMessage(message)
+            .setPositiveButton(R.string.check_test) { _, _ ->
+                val route = PlayerApp.play(this, getString(R.string.check_test_query))
+                Toast.makeText(this, getString(when (route) {
+                    PlayerApp.Route.SESSION -> R.string.route_session
+                    PlayerApp.Route.INTENT -> R.string.route_intent
+                    PlayerApp.Route.SEARCH_PAGE -> R.string.route_page
+                    PlayerApp.Route.OPENED_APP -> R.string.route_opened
+                    PlayerApp.Route.NONE -> R.string.route_none
+                }, app), Toast.LENGTH_LONG).show()
+            }
+            .setNegativeButton(R.string.close, null)
+            .show()
     }
 
     private fun pin(cls: Class<*>) {
