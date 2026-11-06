@@ -42,6 +42,9 @@ class DotStage(private val context: Context, unit: Float? = null) {
     var showControls = true
     /** Flick to skip and tap to pause (off on the wallpaper: those gestures belong to the launcher). */
     var gestures = true
+    /** Space kept free above and below for the host's own bars (the player's top bar and next-pick bar). */
+    var topReserve = 0f
+    var bottomReserve = 0f
     /** Paint its own black background (off on the wallpaper, which draws the photo underneath). */
     var opaque = true
     /** Host hooks: redraw, and a haptic tick (no-op on the wallpaper). */
@@ -175,8 +178,8 @@ class DotStage(private val context: Context, unit: Float? = null) {
     /** New canvas size (and system bar insets, so nothing hides behind them). */
     fun resize(w: Int, h: Int, top: Float, bottom: Float) {
         width = w; height = h
-        topInset = top
-        bottomInset = bottom
+        topInset = top + topReserve
+        bottomInset = bottom + bottomReserve
         val usable = h - topInset - bottomInset
         val size = min(w - 56 * d, usable * 0.5f)
         discRadius = size / 2f

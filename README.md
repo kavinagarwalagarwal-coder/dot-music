@@ -1,10 +1,30 @@
 # Dot Music
 
-**Your music, as a spinning record of dots.**
+**A full-screen dot player for YouTube Music, with recommendations that learn on your phone.**
 
-A home-screen music widget and full-screen player in a dot-matrix style inspired by Nothing. The album cover becomes a record made of hundreds of dots: brighter parts get bigger dots, like a halftone print.
+Open the app and you're in the player: the album cover becomes a spinning record made of hundreds of dots, in a dot-matrix style inspired by Nothing. YouTube Music does the playing, with your account, your library and background play. Dot is the screen, the controls and the picks.
 
-[**⬇ Download the latest APK**](../../releases/tag/latest) · Android 8.0+ · No internet permission
+[**⬇ Download the latest APK**](../../releases/tag/latest) · Android 8.0+ · Needs [YouTube Music](https://play.google.com/store/apps/details?id=com.google.android.apps.youtube.music) · No internet permission
+
+## Playing through YouTube Music
+
+- **For you** (top right) opens search and your recommendation shelves. Type anything and press search, or tap a pick: it starts on YouTube Music, which keeps a radio of similar songs going after it.
+- Dot hands songs straight to YouTube Music's media session, the way Assistant and Android Auto do, so you stay in the player. If YouTube Music isn't running yet, it opens and starts playing.
+- The bar at the bottom shows **Dot's next pick**; tap it to play it now. Turn on **Dot picks the next song** in settings and Next (or a left flick of the record) plays Dot's pick instead of YouTube Music's queue.
+- YouTube Music's own queue shows up under For you too, when it shares it.
+
+## Recommendations
+
+Dot learns only from what you play, and keeps it in the app's private storage on your phone.
+
+- **How a song ended.** Played through counts as a like, half-way as a shrug, skipped early as a dislike. Songs you skip again and again stop coming up.
+- **Recency.** Every signal fades over about a month, so your taste can move on.
+- **Flow.** Which song you happily played after which (song to song, and artist to artist), followed two steps out from what's playing now. This drives **Up next**.
+- **Time of day.** Songs you lean on in the morning versus late at night: **Your evening**, **Your late night**…
+- **Rest.** Songs you just heard sit out for a while.
+- **Exploring.** Each pick is a Thompson sample of how much you like the song, so ones Dot is unsure about still get a turn. A diversity pass spreads artists out. **Explore** suggests artists that follow your favourites, and radios seeded from songs you love, where YouTube Music brings in music you haven't heard.
+
+Shelves: **Up next**, **Your ‹time of day›**, **On repeat**, **Rediscover** (old favourites you drifted from) and **Explore**. You can switch learning off or forget everything in settings.
 
 ## Widgets
 
@@ -25,7 +45,7 @@ It sits on top of your own wallpaper photo (Android doesn't let apps read your c
 
 ## The full-screen player
 
-Tap a widget's record or title, or open it from the app.
+It's what opens when you start the app, or tap a widget's record or title.
 
 - **A record of ~700 springy dots** that slowly spins while the song plays and settles when you pause.
 - **Ripples on the beat** roll out through the record, and a **ring of dots** around it works as a circular equaliser.
@@ -36,15 +56,16 @@ Tap a widget's record or title, or open it from the app.
 
 ## Setup
 
-1. Install the APK from [Releases](../../releases/tag/latest).
-2. Open Dot Music and tap **Allow notification access**. This is how Android lets an app see what's playing.
-3. Tap one of the **Add the…** buttons to drop a widget on your home screen, or **Set as live wallpaper**.
+1. Install YouTube Music and sign in.
+2. Install the APK from [Releases](../../releases/tag/latest) and open Dot Music.
+3. Tap **Connect YouTube Music** at the bottom and allow notification access. This is how Android lets an app see and control what's playing.
+4. Open **For you** and play something. Widgets and the live wallpaper are in settings (**•••**).
 
-Works with any music app that shows media controls: Spotify, YouTube Music, Apple Music, PixelPlayer and others.
+The widgets, the wallpaper and the player also follow other music apps (Spotify, Apple Music and others) unless you turn on **Only follow YouTube Music**.
 
 ## Privacy
 
-No internet permission, no accounts, no analytics. The song, cover and play state are read from your music app's media session and kept in memory only.
+No internet permission, no accounts, no analytics. The song, cover and play state are read from YouTube Music's media session. Your listening history (song, artist, how long you listened, the hour) is kept in the app's private storage to make recommendations, and never leaves the phone. Settings has **Forget my listening history**.
 
 ## Build
 

@@ -20,10 +20,11 @@ import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 
-/** Setup, a live preview of the dot record, one-tap widget adding, and the few settings. */
-class MainActivity : Activity(), MusicCenter.Observer {
-    private lateinit var preview: DotPlayerView
+/** Settings: connecting YouTube Music, recommendations, widgets, the live wallpaper and style. */
+class MainActivity : Activity() {
     private lateinit var access: Button
+    private lateinit var ytButton: Button
+    private lateinit var forget: Button
     private lateinit var photoButton: Button
     private lateinit var removePhoto: Button
     private val d by lazy { resources.displayMetrics.density }
@@ -42,39 +43,46 @@ class MainActivity : Activity(), MusicCenter.Observer {
     override fun onResume() {
         super.onResume()
         MusicCenter.attach(this)
-        MusicCenter.observe(this)
-        preview.start()
         val ok = MusicListener.enabled(this)
         access.text = getString(if (ok) R.string.access_on else R.string.access_off)
         access.alpha = if (ok) 0.6f else 1f
+        val yt = YouTubeMusic.installed(this)
+        ytButton.text = getString(if (yt) R.string.open_yt_music else R.string.get_yt_music)
+        forget.text = getString(R.string.forget_history, Taste.count())
     }
-
-    override fun onPause() {
-        MusicCenter.forget(this)
-        preview.stop()
-        super.onPause()
-    }
-
-    override fun onTrack(track: Track?) = preview.setTrack(track, preview.takeDirection())
 
     private fun buildUi(): View {
         val column = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding((22 * d).toInt(), (40 * d).toInt(), (22 * d).toInt(), (40 * d).toInt())
         }
-        column.addView(heading(getString(R.string.app_name).uppercase(), 34f))
+        column.addView(heading(getString(R.string.settings_title).uppercase(), 34f))
         column.addView(body(getString(R.string.tagline)))
 
-        preview = DotPlayerView(this)
-        column.addView(preview, LinearLayout.LayoutParams(-1, (560 * d).toInt()).apply { topMargin = (12 * d).toInt() })
-        column.addView(button(getString(R.string.open_player)) {
-            startActivity(Intent(this, DotPlayerActivity::class.java))
-        })
-
-        column.addView(heading(getString(R.string.section_setup), 20f))
+        column.addView(heading(getString(R.string.section_youtube), 20f))
+        column.addView(body(getString(R.string.youtube_note)))
         access = button(getString(R.string.access_off)) { startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
         column.addView(access)
         column.addView(body(getString(R.string.access_note)))
+        ytButton = button(getString(R.string.open_yt_music)) { YouTubeMusic.open(this) }
+        column.addView(ytButton)
+        column.addView(toggle(R.string.setting_yt_only, R.string.setting_yt_only_note, DotPrefs.ytOnly(this)) { DotPrefs.setYtOnly(this, it) })
+
+        column.addView(heading(getString(R.string.section_recs), 20f))
+        column.addView(body(getString(R.string.recs_note)))
+        column.addView(toggle(R.string.setting_dj, R.string.setting_dj_note, DotPrefs.dj(this)) { DotPrefs.setDj(this, it) })
+        column.addView(toggle(R.string.setting_learn, R.string.setting_learn_note, DotPrefs.learn(this)) { DotPrefs.setLearn(this, it) })
+        forget = button(getString(R.string.forget_history, 0)) {
+            android.app.AlertDialog.Builder(this)
+                .setMessage(R.string.forget_confirm)
+                .setPositiveButton(R.string.forget_yes) { _, _ ->
+                    Taste.clear(this); forget.text = getString(R.string.forget_history, 0)
+                    Toast.makeText(this, R.string.forgotten, Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+        column.addView(forget)
 
         column.addView(heading(getString(R.string.section_widgets), 20f))
         column.addView(body(getString(R.string.widgets_note)))
@@ -111,7 +119,7 @@ class MainActivity : Activity(), MusicCenter.Observer {
 
         column.addView(heading(getString(R.string.section_style), 20f))
         column.addView(toggle(R.string.setting_mono, R.string.setting_mono_note, DotPrefs.mono(this)) {
-            DotPrefs.setMono(this, it); MusicWidgets.refresh(this); recreatePreview()
+            DotPrefs.setMono(this, it); MusicWidgets.refresh(this)
         })
         column.addView(toggle(R.string.setting_animations, R.string.setting_animations_note, DotPrefs.animations(this)) {
             DotPrefs.setAnimations(this, it); MusicWidgets.refresh(this)
@@ -141,18 +149,6 @@ class MainActivity : Activity(), MusicCenter.Observer {
         val has = WallpaperPhoto.exists(this)
         photoButton.text = getString(if (has) R.string.pick_photo_change else R.string.pick_photo)
         removePhoto.visibility = if (has) View.VISIBLE else View.GONE
-    }
-
-    /** Mono/colour changes the whole palette; rebuild the preview's record with it. */
-    private fun recreatePreview() {
-        val parent = preview.parent as LinearLayout
-        val index = parent.indexOfChild(preview)
-        val lp = preview.layoutParams
-        preview.stop()
-        parent.removeView(preview)
-        preview = DotPlayerView(this)
-        parent.addView(preview, index, lp)
-        preview.setTrack(MusicCenter.current)
     }
 
     private fun pin(cls: Class<*>) {

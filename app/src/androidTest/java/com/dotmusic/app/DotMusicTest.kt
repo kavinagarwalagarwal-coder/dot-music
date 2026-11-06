@@ -92,11 +92,38 @@ class DotMusicTest {
         assertTrue(!WallpaperPhoto.exists(context))
     }
 
+    /** For you opens over the player with learned shelves, and closes again with back. */
+    @Test fun forYouPanelOpensWithPicks() {
+        val now = System.currentTimeMillis()
+        val listens = (1..6).flatMap { d ->
+            listOf("Alpha" to "Ann", "Bravo" to "Ben", "Charlie" to "Cat").mapIndexed { i, (t, a) ->
+                Listen(now - d * 86_400_000L + i * 205_000L, t, a, YouTubeMusic.PACKAGE, 200_000, 200_000, false, 20, false)
+            }
+        }
+        val engine = TasteEngine(listens, now)
+        val shelves = engine.shelves("Alpha", "Ann", 20)
+        assertTrue(shelves.upNext.isNotEmpty())
+        ActivityScenario.launch(DotPlayerActivity::class.java).use { scenario ->
+            scenario.onActivity { a ->
+                val panel = (a.player.parent as FrameLayout).let { root ->
+                    (0 until root.childCount).map(root::getChildAt).filterIsInstance<ForYouPanel>().first()
+                }
+                panel.show()
+                panel.onShelves(shelves)
+                assertTrue(panel.showing)
+            }
+            SystemClock.sleep(500)
+            instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
+            SystemClock.sleep(500)
+            scenario.onActivity { a -> assertTrue(a.player.isAttachedToWindow) }
+        }
+    }
+
     /** The player runs, survives song changes and play/pause, and keeps drawing frames. */
     @Test fun playerRunsThroughSongChanges() {
         ActivityScenario.launch(DotPlayerActivity::class.java).use { scenario ->
             var view: DotPlayerView? = null
-            scenario.onActivity { view = it.window.decorView.findViewById<FrameLayout>(android.R.id.content).getChildAt(0) as DotPlayerView }
+            scenario.onActivity { view = it.player }
             instrumentation.runOnMainSync { view!!.setTrack(track("First Song", Color.RED)) }
             SystemClock.sleep(800)
             instrumentation.runOnMainSync { view!!.setTrack(track("A Much Longer Second Song Title That Scrolls", Color.GREEN), -1) }

@@ -30,4 +30,16 @@ object DotPrefs {
     /** The full-screen player reacts to the music's real loudness (needs the microphone permission). */
     fun beat(c: Context) = p(c).getBoolean("beat", false)
     fun setBeat(c: Context, on: Boolean) = p(c).edit().putBoolean("beat", on).apply()
+
+    /** Follow only YouTube Music, never other apps' sessions. */
+    fun ytOnly(c: Context) = p(c).getBoolean("yt_only", false)
+    fun setYtOnly(c: Context, on: Boolean) = p(c).edit().putBoolean("yt_only", on).apply()
+
+    /** Next goes to Dot's own pick instead of YouTube Music's queue. */
+    fun dj(c: Context) = p(c).getBoolean("dj", false)
+    fun setDj(c: Context, on: Boolean) = p(c).edit().putBoolean("dj", on).apply()
+
+    /** Learn from what plays, for recommendations. */
+    fun learn(c: Context) = p(c).getBoolean("learn", true)
+    fun setLearn(c: Context, on: Boolean) = p(c).edit().putBoolean("learn", on).apply()
 }

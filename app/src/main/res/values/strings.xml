@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Dot Music</string>
-    <string name="tagline">Your music, as a spinning record of dots. Add it to your home screen, or open the player and play with it: flick the record to skip, tap to pause, drag your finger through the dots.</string>
+    <string name="tagline">Dot Music is a full-screen dot player for YouTube Music. YouTube Music does the playing, with your account and background play; Dot is the screen, the controls and the recommendations.</string>
     <string name="open_player">Open the full-screen player</string>
 
     <string name="section_setup">Setup</string>
@@ -24,10 +24,10 @@
     <string name="setting_beat">React to the real beat</string>
     <string name="setting_beat_note">The player ripples and the ring moves with the actual music. Android files this under the microphone permission, but the app only measures how loud each frequency is and never records anything. Off: a steady pulse instead.</string>
 
-    <string name="privacy">No internet permission. No accounts. Nothing is stored or sent anywhere.</string>
+    <string name="privacy">No internet permission. No accounts. Your listening history stays in this app\'s private storage on your phone and is never sent anywhere.</string>
 
     <string name="player_idle">Nothing playing</string>
-    <string name="player_idle_hint">Play something</string>
+    <string name="player_idle_hint">Tap For you to play something</string>
 
     <string name="widget_small_name">Dot record</string>
     <string name="widget_medium_name">Dot player</string>
@@ -60,4 +60,49 @@
     <string name="action_play_pause">Play or pause</string>
     <string name="action_next">Next song</string>
     <string name="action_previous">Previous song</string>
+
+    <!-- YouTube Music and recommendations -->
+    <string name="settings_title">Dot Music settings</string>
+    <string name="for_you">For you</string>
+    <string name="close">Close</string>
+    <string name="search_hint">Search YouTube Music</string>
+    <string name="search_note">Type a song, artist or album and press search. YouTube Music plays the best match and keeps a radio of similar songs going after it.</string>
+    <string name="get_yt_music">Get YouTube Music</string>
+    <string name="get_yt_music_note">Dot plays your music through YouTube Music</string>
+    <string name="open_yt_music">Open YouTube Music</string>
+    <string name="yt_unreachable">Couldn\'t reach YouTube Music. Open it once, then try again.</string>
+    <string name="shelf_learning">Learning your taste</string>
+    <string name="learning_note">Dot learns from what you play: what you finish, what you skip, what you play after what, and at what time of day. Play a few songs and your picks appear here. All of it stays on this phone.</string>
+    <string name="shelf_up_next">Up next</string>
+    <string name="shelf_queue">In YouTube Music\'s queue</string>
+    <string name="shelf_for_now">Your %1$s</string>
+    <string name="shelf_on_repeat">On repeat</string>
+    <string name="shelf_rediscover">Rediscover</string>
+    <string name="shelf_explore">Explore</string>
+    <string name="learned_from">Learned from %1$d listens, on this phone only.</string>
+    <string name="artist_mix">%1$s mix</string>
+    <string name="artist_mix_note">%1$s · plays their songs</string>
+    <string name="bar_setup">Connect YouTube Music</string>
+    <string name="bar_setup_text">Tap to allow notification access</string>
+    <string name="bar_get">Get YouTube Music</string>
+    <string name="bar_next">Dot picks next</string>
+    <string name="bar_next_dj">Next up · Dot DJ</string>
+    <string name="bar_start">Start</string>
+    <string name="bar_start_text">Search or pick something to play</string>
+    <string name="bar_learning">Learning your taste</string>
+    <string name="bar_learning_text">Keep listening and Dot\'s picks appear here</string>
+    <string name="section_youtube">YouTube Music</string>
+    <string name="youtube_note">Dot shows and controls what YouTube Music is playing, and starts songs on it. Sign in and pick your audio quality in YouTube Music itself.</string>
+    <string name="setting_yt_only">Only follow YouTube Music</string>
+    <string name="setting_yt_only_note">Ignore other apps\' music. Off: Dot prefers YouTube Music but also shows other players.</string>
+    <string name="section_recs">Recommendations</string>
+    <string name="recs_note">Dot learns from what you finish, what you skip, which songs you play after which, and the time of day. Recent listening counts more, songs you just heard get a rest, and Dot sometimes tries songs it\'s unsure about so your picks don\'t get stuck on the same ten.</string>
+    <string name="setting_dj">Dot picks the next song</string>
+    <string name="setting_dj_note">Next and a left flick play Dot\'s pick instead of YouTube Music\'s queue.</string>
+    <string name="setting_learn">Learn from what I play</string>
+    <string name="setting_learn_note">Off: nothing new is recorded. What Dot already learned stays until you forget it.</string>
+    <string name="forget_history">Forget my listening history (%1$d listens)</string>
+    <string name="forget_confirm">Forget everything Dot has learned about your taste? This can\'t be undone.</string>
+    <string name="forget_yes">Forget</string>
+    <string name="forgotten">Listening history forgotten</string>
 </resources>
