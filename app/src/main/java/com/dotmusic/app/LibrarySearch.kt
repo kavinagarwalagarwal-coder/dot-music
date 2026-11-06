@@ -3,11 +3,11 @@ package com.dotmusic.app
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.media.browse.MediaBrowser
-import android.media.session.MediaController
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.session.MediaControllerCompat
 
 /**
  * Starts a song in another app through its music library, the way Android Auto does: connect to the
@@ -30,7 +30,7 @@ object LibrarySearch {
     fun play(context: Context, pkg: String, query: String, title: String?, artist: String?, done: (Result) -> Unit) {
         val ctx = context.applicationContext
         val component = service(ctx, pkg) ?: return done(Result(false, ctx.getString(R.string.lib_no_service)))
-        var browser: MediaBrowser? = null
+        var browser: MediaBrowserCompat? = null
         var finished = false
         lateinit var timeout: Runnable
         fun finish(r: Result, linger: Long = 0) {
@@ -43,17 +43,17 @@ object LibrarySearch {
         }
         timeout = Runnable { finish(Result(false, ctx.getString(R.string.lib_timeout))) }
 
-        browser = MediaBrowser(ctx, component, object : MediaBrowser.ConnectionCallback() {
+        browser = MediaBrowserCompat(ctx, component, object : MediaBrowserCompat.ConnectionCallback() {
             override fun onConnected() {
                 val b = browser ?: return
                 runCatching {
-                    b.search(query, Bundle(), object : MediaBrowser.SearchCallback() {
-                        override fun onSearchResult(q: String, extras: Bundle?, items: List<MediaBrowser.MediaItem>) {
+                    b.search(query, Bundle(), object : MediaBrowserCompat.SearchCallback() {
+                        override fun onSearchResult(q: String, extras: Bundle?, items: List<MediaBrowserCompat.MediaItem>) {
                             val best = best(items.filter { it.isPlayable && it.mediaId != null }, title, artist)
                                 ?: return finish(Result(false, ctx.getString(R.string.lib_no_results, items.size)))
                             val name = listOfNotNull(best.description.title, best.description.subtitle).joinToString(" — ")
                             val ok = runCatching {
-                                MediaController(ctx, b.sessionToken).transportControls.playFromMediaId(best.mediaId, Bundle())
+                                MediaControllerCompat(ctx, b.sessionToken).transportControls.playFromMediaId(best.mediaId, Bundle())
                             }.isSuccess
                             finish(if (ok) Result(true, ctx.getString(R.string.lib_started), name)
                                 else Result(false, ctx.getString(R.string.lib_play_failed), name), linger = 8_000)
@@ -73,7 +73,7 @@ object LibrarySearch {
     }
 
     /** The result that is the same song (title and artist), else the first one. */
-    private fun best(items: List<MediaBrowser.MediaItem>, title: String?, artist: String?): MediaBrowser.MediaItem? {
+    private fun best(items: List<MediaBrowserCompat.MediaItem>, title: String?, artist: String?): MediaBrowserCompat.MediaItem? {
         if (items.isEmpty()) return null
         if (title.isNullOrBlank()) return items.first()
         val want = SongKeys.key(title, artist.orEmpty())
