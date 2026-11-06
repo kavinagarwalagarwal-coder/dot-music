@@ -7,6 +7,14 @@
     <!-- No INTERNET permission: nothing leaves the phone. -->
     <uses-feature android:name="android.software.live_wallpaper" android:required="false" />
 
+    <!-- YouTube Music plays the music; Dot needs to see that it's installed and hand it songs. -->
+    <queries>
+        <package android:name="com.google.android.apps.youtube.music" />
+        <intent>
+            <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -14,20 +22,24 @@
         android:label="@string/app_name"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
 
+        <!-- The full-screen player is the app. -->
         <activity
-            android:name=".MainActivity"
-            android:exported="true">
+            android:name=".DotPlayerActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustNothing"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <!-- Settings and setup: widgets, wallpaper, YouTube Music, style. -->
         <activity
-            android:name=".DotPlayerActivity"
+            android:name=".MainActivity"
             android:exported="false"
-            android:launchMode="singleTask"
-            android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen" />
+            android:label="@string/settings_title" />
 
         <!-- Notification access is how Android lets an app follow other apps' media sessions. -->
         <service

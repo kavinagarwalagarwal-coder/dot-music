@@ -24,15 +24,43 @@ object MusicCenter {
     /** Set by [MusicListener] while it is connected. */
     internal var controls: ((Command) -> Unit)? = null
     internal var seeker: ((Long) -> Unit)? = null
+    /** Asks YouTube Music's session to play from a search; false if it isn't there or can't. */
+    internal var searcher: ((String, android.os.Bundle) -> Boolean)? = null
+    internal var queueReader: (() -> List<QueueEntry>)? = null
+    internal var queueJumper: ((Long) -> Unit)? = null
+
+    /** A song in the playing app's own queue. */
+    data class QueueEntry(val id: Long, val title: String, val subtitle: String)
 
     val connected: Boolean get() = controls != null
 
-    fun attach(context: Context) { app = context.applicationContext }
+    fun attach(context: Context) {
+        if (app != null) return
+        app = context.applicationContext
+        Taste.attach(context)
+    }
 
     fun observe(o: Observer) { observers += o; o.onTrack(current) }
     fun forget(o: Observer) { observers -= o }
 
-    fun command(c: Command) { controls?.invoke(c) }
+    fun command(c: Command) {
+        if (c == Command.NEXT) {
+            Taste.noteSkip()
+            // "Dot picks the next song": skip to Dot's pick instead of the app's queue.
+            val ctx = app
+            if (ctx != null && DotPrefs.dj(ctx) && YouTubeMusic.isPlayingThere()) {
+                val pick = Taste.nextPick()
+                if (pick != null && YouTubeMusic.playInSession(pick)) return
+            }
+        }
+        controls?.invoke(c)
+    }
+
+    fun playFromSearch(query: String, extras: android.os.Bundle): Boolean = searcher?.invoke(query, extras) == true
+
+    /** Up next in the playing app, if it shares its queue. */
+    fun queue(): List<QueueEntry> = queueReader?.invoke().orEmpty()
+    fun jumpTo(id: Long) { queueJumper?.invoke(id) }
     fun seekTo(ms: Long) { seeker?.invoke(ms) }
 
     internal fun publish(track: Track?) { main.post { deliver(track) } }
@@ -44,6 +72,7 @@ object MusicCenter {
         if (before?.id != track?.id || before?.isPlaying != track?.isPlaying || (before == null) != (track == null) ||
             before?.art !== track?.art) app?.let { MusicWidgets.refresh(it) }
         else app?.let { MusicWidgets.refreshProgress(it) }
+        Taste.onTrack(track)
         observers.toList().forEach { it.onTrack(track) }
         scheduleTick()
     }

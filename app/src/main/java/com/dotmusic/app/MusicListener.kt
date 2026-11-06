@@ -25,6 +25,10 @@ class MusicListener : NotificationListenerService() {
     private val main = Handler(Looper.getMainLooper())
     private var sessions: MediaSessionManager? = null
     private var controller: MediaController? = null
+    private var latest: List<MediaController> = emptyList()
+    private val prefsChanged = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == "yt_only") refreshSessions()
+    }
     private var artFor: String? = null
     private var art: Bitmap? = null
     private var accent = DEFAULT_ACCENT
@@ -46,6 +50,10 @@ class MusicListener : NotificationListenerService() {
         MusicCenter.attach(this)
         MusicCenter.controls = ::control
         MusicCenter.seeker = { ms -> controller?.transportControls?.seekTo(ms.coerceAtLeast(0)) }
+        MusicCenter.searcher = ::playFromSearch
+        MusicCenter.queueReader = ::queue
+        MusicCenter.queueJumper = { id -> controller?.transportControls?.skipToQueueItem(id) }
+        DotPrefs.listen(this, prefsChanged)
         val manager = getSystemService(MediaSessionManager::class.java)
         sessions = manager
         runCatching { manager?.addOnActiveSessionsChangedListener(sessionsChanged, ComponentName(this, MusicListener::class.java), main) }
@@ -56,9 +64,14 @@ class MusicListener : NotificationListenerService() {
     override fun onListenerDisconnected() {
         runCatching { sessions?.removeOnActiveSessionsChangedListener(sessionsChanged) }
         runCatching { unregisterReceiver(screenOn) }
+        DotPrefs.unlisten(this, prefsChanged)
         setController(null)
+        latest = emptyList()
         MusicCenter.controls = null
         MusicCenter.seeker = null
+        MusicCenter.searcher = null
+        MusicCenter.queueReader = null
+        MusicCenter.queueJumper = null
         MusicCenter.publish(null)
         super.onListenerDisconnected()
     }
@@ -68,11 +81,19 @@ class MusicListener : NotificationListenerService() {
         choose(list.orEmpty())
     }
 
-    /** Prefer whatever is playing; otherwise keep the most recent session (Android lists newest first). */
+    /**
+     * Prefer YouTube Music while it plays, then whatever else is playing; otherwise keep the most
+     * recent session (Android lists newest first). "Only YouTube Music" ignores every other app.
+     */
     private fun choose(list: List<MediaController>) {
-        val pick = list.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }
-            ?: list.firstOrNull { it.sessionToken == controller?.sessionToken }
-            ?: list.firstOrNull()
+        latest = list
+        val pool = if (DotPrefs.ytOnly(this)) list.filter { it.packageName == YouTubeMusic.PACKAGE } else list
+        fun playing(c: MediaController) = c.playbackState?.state == PlaybackState.STATE_PLAYING
+        val pick = pool.firstOrNull { playing(it) && it.packageName == YouTubeMusic.PACKAGE }
+            ?: pool.firstOrNull { playing(it) }
+            ?: pool.firstOrNull { it.sessionToken == controller?.sessionToken }
+            ?: pool.firstOrNull { it.packageName == YouTubeMusic.PACKAGE }
+            ?: pool.firstOrNull()
         if (pick?.sessionToken != controller?.sessionToken) setController(pick)
         publishSoon()
     }
@@ -91,6 +112,29 @@ class MusicListener : NotificationListenerService() {
                 if (ctl.playbackState?.state == PlaybackState.STATE_PLAYING) t.pause() else t.play()
             MusicCenter.Command.NEXT -> t.skipToNext()
             MusicCenter.Command.PREVIOUS -> t.skipToPrevious()
+        }
+    }
+
+    /** Ask YouTube Music's own session to find and play something, if it's running and can. */
+    private fun playFromSearch(query: String, extras: android.os.Bundle): Boolean {
+        val yt = latest.firstOrNull { it.packageName == YouTubeMusic.PACKAGE }
+            ?: runCatching { sessions?.getActiveSessions(ComponentName(this, MusicListener::class.java)) }.getOrNull()
+                ?.firstOrNull { it.packageName == YouTubeMusic.PACKAGE }
+            ?: return false
+        val actions = yt.playbackState?.actions ?: 0L
+        if ((actions and PlaybackState.ACTION_PLAY_FROM_SEARCH) == 0L) return false
+        return runCatching { yt.transportControls.playFromSearch(query, extras); true }.getOrDefault(false)
+    }
+
+    private fun queue(): List<MusicCenter.QueueEntry> {
+        val ctl = controller ?: return emptyList()
+        val items = runCatching { ctl.queue }.getOrNull().orEmpty()
+        if (items.isEmpty()) return emptyList()
+        val active = ctl.playbackState?.activeQueueItemId ?: -1L
+        val at = items.indexOfFirst { it.queueId == active }
+        return items.drop(if (at >= 0) at + 1 else 0).take(QUEUE_SHOWN).mapNotNull { q ->
+            val title = q.description.title?.toString()?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+            MusicCenter.QueueEntry(q.queueId, title, q.description.subtitle?.toString().orEmpty())
         }
     }
 
@@ -155,6 +199,7 @@ class MusicListener : NotificationListenerService() {
 
     companion object {
         private const val ART_SIZE = 256
+        private const val QUEUE_SHOWN = 12
         const val DEFAULT_ACCENT = 0xFFFF3B30.toInt()
 
         fun enabled(context: Context): Boolean =
