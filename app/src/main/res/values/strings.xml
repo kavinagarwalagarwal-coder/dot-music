@@ -121,7 +121,7 @@
     <string name="check_search_session">Start songs from Dot, staying in Dot</string>
     <string name="check_search_intent">Start songs from Dot, by opening the app</string>
     <string name="check_queue">Shares its queue</string>
-    <string name="check_play_first">? means Dot can\'t tell yet. Play a song in %1$s, come back and check again: apps only show what they support while music is loaded.</string>
+    <string name="check_play_first">\? means Dot can\'t tell yet. Play a song in %1$s, come back and check again: apps only show what they support while music is loaded.</string>
     <string name="check_legend">If starting songs while staying in Dot is ✗ but opening the app is ✓, tapping a pick opens %1$s and plays it there. If both are ✗, Dot still shows, controls and learns from %1$s, and picks open it so you can search.</string>
     <string name="check_test">Send a test song</string>
     <string name="check_test_query">Blinding Lights The Weeknd</string>
