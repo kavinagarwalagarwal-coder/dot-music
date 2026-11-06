@@ -163,7 +163,7 @@ class DotPlayerActivity : Activity(), MusicCenter.Observer, Taste.Observer {
                 getString(R.string.get_player_note, PlayerApp.name(this))) { PlayerApp.getIt(this) }
             pick != null -> showBar(if (DotPrefs.dj(this)) R.string.bar_next_dj else R.string.bar_next,
                 if (pick.kind == TasteEngine.Kind.ARTIST) getString(R.string.artist_mix, pick.artist) else "${pick.title} — ${pick.artist}") {
-                DotUi.reported(this, PlayerApp.play(this, pick))
+                PlayerApp.play(this, pick) { DotUi.reported(this, it) }
             }
             MusicCenter.current == null -> showBar(R.string.bar_start, getString(R.string.bar_start_text)) { panel.show() }
             else -> showBar(R.string.bar_learning, getString(R.string.bar_learning_text)) { panel.show() }
