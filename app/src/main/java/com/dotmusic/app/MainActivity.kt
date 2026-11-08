@@ -59,7 +59,19 @@ class MainActivity : Activity() {
         column.addView(heading(getString(R.string.settings_title).uppercase(), 34f))
         column.addView(body(getString(R.string.tagline)))
 
+        column.addView(heading(getString(R.string.section_online), 20f))
+        column.addView(body(getString(R.string.online_note)))
+        column.addView(field(R.string.youtube_key, R.string.youtube_key_hint, DotPrefs.youtubeKey(this)) { DotPrefs.setYoutubeKey(this, it) })
+        column.addView(body(getString(R.string.youtube_key_steps)))
+        column.addView(button(getString(R.string.youtube_key_open)) {
+            runCatching { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(YT_CONSOLE))) }
+        })
+        column.addView(toggle(R.string.setting_audius, R.string.setting_audius_note, DotPrefs.audius(this)) { DotPrefs.setAudius(this, it) })
+        column.addView(field(R.string.jamendo_id, R.string.jamendo_id_hint, DotPrefs.jamendoId(this)) { DotPrefs.setJamendoId(this, it) })
+        column.addView(body(getString(R.string.jamendo_steps)))
+
         column.addView(heading(getString(R.string.section_player), 20f))
+        column.addView(body(getString(R.string.player_other_note)))
         column.addView(body(getString(R.string.player_note)))
         playerButton = button("") { choosePlayer() }
         column.addView(playerButton)
@@ -254,6 +266,24 @@ class MainActivity : Activity() {
         layoutParams = LinearLayout.LayoutParams(-1, (52 * d).toInt()).apply { topMargin = (8 * d).toInt() }
     }
 
+    /** A labelled one-line text setting, saved as you type. */
+    private fun field(label: Int, hint: Int, value: String, onChange: (String) -> Unit) = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        setPadding(0, (12 * d).toInt(), 0, 0)
+        addView(TextView(this@MainActivity).apply { text = getString(label); textSize = 16f; setTextColor(Color.WHITE) })
+        addView(android.widget.EditText(this@MainActivity).apply {
+            setText(value); this.hint = getString(hint); isSingleLine = true
+            setTextColor(Color.WHITE); setHintTextColor(Color.argb(110, 255, 255, 255)); textSize = 15f
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or
+                android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+            addTextChangedListener(object : android.text.TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                override fun afterTextChanged(s: android.text.Editable?) { onChange(s?.toString().orEmpty()) }
+            })
+        })
+    }
+
     private fun toggle(title: Int, note: Int, checked: Boolean, onChange: (Boolean) -> Unit) = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
         setPadding(0, (8 * d).toInt(), 0, (4 * d).toInt())
@@ -268,5 +298,6 @@ class MainActivity : Activity() {
     private companion object {
         const val PICK_PHOTO = 7
         const val TEST_WAIT_MS = 6_000L
+        const val YT_CONSOLE = "https://console.cloud.google.com/apis/library/youtube.googleapis.com"
     }
 }

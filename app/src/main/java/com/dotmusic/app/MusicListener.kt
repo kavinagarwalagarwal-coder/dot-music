@@ -89,7 +89,9 @@ class MusicListener : NotificationListenerService() {
      * Prefer the player app while it plays, then whatever else is playing; otherwise keep the most
      * recent session (Android lists newest first). "Only follow" ignores every other app.
      */
-    private fun choose(list: List<MediaController>) {
+    private fun choose(all: List<MediaController>) {
+        // Dot's own player publishes itself directly; its media session is for the notification.
+        val list = all.filter { it.packageName != packageName }
         latest = list
         val mine = PlayerApp.chosen(this)
         val pool = if (DotPrefs.playerOnly(this)) list.filter { it.packageName == mine } else list

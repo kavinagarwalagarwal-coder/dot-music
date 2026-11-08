@@ -26,6 +26,11 @@ class DotPlayerActivity : Activity(), MusicCenter.Observer, Taste.Observer {
     private lateinit var nextLabel: TextView
     private lateinit var nextText: TextView
     private var nextAction: () -> Unit = {}
+    /** YouTube's player for YouTube songs: a visible card above the bottom bar, as YouTube requires. */
+    private lateinit var videoCard: FrameLayout
+    private var youtube: YouTubeEmbed? = null
+    private var bottomInset = 0
+    private val queueWatch = DotPlayback.QueueObserver { refreshNextBar() }
     private val beat by lazy { BeatListener(this) { bands -> player.spectrum = bands } }
     private fun dp(v: Float) = DotUi.dp(this, v)
 
@@ -87,6 +92,17 @@ class DotPlayerActivity : Activity(), MusicCenter.Observer, Taste.Observer {
             leftMargin = dp(16f).toInt(); rightMargin = dp(16f).toInt(); bottomMargin = dp(12f).toInt()
         })
 
+        videoCard = FrameLayout(this).apply {
+            visibility = View.GONE
+            background = DotUi.pill(this@DotPlayerActivity, Color.BLACK, 14f)
+            clipToOutline = true
+            // Never covered, not even by For you (YouTube's embed rules).
+            elevation = dp(24f)
+        }
+        root.addView(videoCard, FrameLayout.LayoutParams(dp(VIDEO_W).toInt(), dp(VIDEO_H).toInt(), Gravity.BOTTOM or Gravity.START).apply {
+            leftMargin = dp(16f).toInt(); bottomMargin = dp(12f + 64f + 10f).toInt()
+        })
+
         panel = ForYouPanel(this).apply { onClose = { refreshNextBar() } }
         root.addView(panel, FrameLayout.LayoutParams(-1, -1))
 
@@ -100,7 +116,9 @@ class DotPlayerActivity : Activity(), MusicCenter.Observer, Taste.Observer {
             val bottom = insets.systemWindowInsetBottom
             (topBar.layoutParams as FrameLayout.LayoutParams).topMargin = top
             (nextBar.layoutParams as FrameLayout.LayoutParams).bottomMargin = dp(12f).toInt() + bottom
-            topBar.requestLayout(); nextBar.requestLayout()
+            (videoCard.layoutParams as FrameLayout.LayoutParams).bottomMargin = dp(12f + 64f + 10f).toInt() + bottom
+            bottomInset = bottom
+            topBar.requestLayout(); nextBar.requestLayout(); videoCard.requestLayout()
             panel.setPadding(0, top, 0, bottom)
             insets
         }
@@ -118,11 +136,45 @@ class DotPlayerActivity : Activity(), MusicCenter.Observer, Taste.Observer {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        DotPlayback.attach(this)
+        // YouTube's player lives only while Dot is on screen.
+        if (Catalogs.youtubeOn(this)) {
+            val e = youtube ?: YouTubeEmbed(this).also { youtube = it; videoCard.addView(it, FrameLayout.LayoutParams(-1, -1)) }
+            DotPlayback.attachYouTube(e)
+        } else youtube?.let { DotPlayback.detachYouTube(it); videoCard.removeView(it); it.release(); youtube = null }
+        refreshVideoCard()
+    }
+
+    override fun onStop() {
+        youtube?.let { DotPlayback.detachYouTube(it) }
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        youtube?.let { DotPlayback.detachYouTube(it); it.release() }
+        youtube = null
+        super.onDestroy()
+    }
+
+    /** Show the YouTube card only while a YouTube song is current, and give the record room for it. */
+    private fun refreshVideoCard() {
+        val show = youtube != null && MusicCenter.current?.mediaId?.startsWith("youtube:") == true
+        val target = if (show) View.VISIBLE else View.GONE
+        if (videoCard.visibility == target) return
+        videoCard.visibility = target
+        player.stage.bottomReserve = dp(if (show) 80f + VIDEO_H + 10f else 80f)
+        player.relayout()
+        panel.bottomSpace = if (show) dp(VIDEO_H + 96f).toInt() else 0
+    }
+
     override fun onResume() {
         super.onResume()
         MusicCenter.attach(this)
         MusicCenter.observe(this)
         Taste.observe(this)
+        DotPlayback.observeQueue(queueWatch)
         player.start()
         beat.start()
         refreshNextBar()
@@ -131,6 +183,7 @@ class DotPlayerActivity : Activity(), MusicCenter.Observer, Taste.Observer {
     override fun onPause() {
         MusicCenter.forget(this)
         Taste.forget(this)
+        DotPlayback.forgetQueue(queueWatch)
         player.stop()
         beat.stop()
         super.onPause()
@@ -146,6 +199,7 @@ class DotPlayerActivity : Activity(), MusicCenter.Observer, Taste.Observer {
         // A now-playing screen: stay awake while the music plays.
         if (track?.isPlaying == true) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        refreshVideoCard()
         refreshNextBar()
     }
 
@@ -155,6 +209,18 @@ class DotPlayerActivity : Activity(), MusicCenter.Observer, Taste.Observer {
     private fun refreshNextBar() {
         if (!::nextBar.isInitialized) return
         val pick = Taste.nextPick()
+        if (Catalogs.anyOn(this)) {
+            // Dot's own player: no other app or permission needed.
+            val queued = DotPlayback.upcoming().firstOrNull()
+            when {
+                MusicCenter.current?.isDot == true && queued != null ->
+                    showBar(R.string.bar_up_next, "${queued.title} — ${queued.artist}") { DotPlayback.jumpUpcoming(0) }
+                pick != null -> showBar(R.string.bar_next, "${pick.title.ifBlank { pick.artist }} — ${pick.artist}") { DotUi.playPick(this, pick) }
+                MusicCenter.current == null -> showBar(R.string.bar_start, getString(R.string.bar_start_text)) { panel.show() }
+                else -> showBar(R.string.bar_learning, getString(R.string.bar_learning_text)) { panel.show() }
+            }
+            return
+        }
         when {
             !MusicListener.enabled(this) -> showBar(getString(R.string.bar_setup, PlayerApp.name(this)), getString(R.string.bar_setup_text)) {
                 startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
@@ -180,5 +246,8 @@ class DotPlayerActivity : Activity(), MusicCenter.Observer, Taste.Observer {
 
     companion object {
         const val EXTRA_FOR_YOU = "for_you"
+        /** The YouTube card: 16:9, comfortably over YouTube's 200×200 px minimum on any phone. */
+        private const val VIDEO_W = 224f
+        private const val VIDEO_H = 126f
     }
 }

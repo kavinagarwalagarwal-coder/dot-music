@@ -7,7 +7,8 @@ import android.os.PowerManager
 
 /**
  * The song playing right now, shared by the widgets and the full-screen player.
- * Fed by [MusicListener]; controls go back to the playing app's media session.
+ * Two feeds: Dot's own player ([DotPlayback]) and other apps ([MusicListener]). Whichever is
+ * playing wins (Dot's own when both are idle); controls go back to it.
  */
 object MusicCenter {
     fun interface Observer { fun onTrack(track: Track?) }
@@ -20,6 +21,8 @@ object MusicCenter {
 
     var current: Track? = null
         private set
+    private var external: Track? = null
+    private var own: Track? = null
 
     /** Set by [MusicListener] while it is connected. */
     internal var controls: ((Command) -> Unit)? = null
@@ -49,8 +52,9 @@ object MusicCenter {
     fun forget(o: Observer) { observers -= o }
 
     fun command(c: Command) {
+        if (c == Command.NEXT) Taste.noteSkip()
+        if (current?.isDot == true) return DotPlayback.command(c)
         if (c == Command.NEXT) {
-            Taste.noteSkip()
             // "Dot picks the next song": skip to Dot's pick instead of the app's queue.
             val ctx = app
             if (ctx != null && DotPrefs.dj(ctx) && PlayerApp.isPlayingThere(ctx)) {
@@ -72,9 +76,25 @@ object MusicCenter {
     /** Up next in the playing app, if it shares its queue. */
     fun queue(): List<QueueEntry> = queueReader?.invoke().orEmpty()
     fun jumpTo(id: Long) { queueJumper?.invoke(id) }
-    fun seekTo(ms: Long) { seeker?.invoke(ms) }
+    fun seekTo(ms: Long) { if (current?.isDot == true) DotPlayback.seekTo(ms) else seeker?.invoke(ms) }
 
-    internal fun publish(track: Track?) { main.post { deliver(track) } }
+    /** From [MusicListener]: another app's song. */
+    internal fun publish(track: Track?) { main.post { external = track; deliver(choose()) } }
+
+    /** From [DotPlayback]: Dot's own song. */
+    internal fun publishOwn(track: Track?) { main.post { own = track; deliver(choose()) } }
+
+    private fun choose(): Track? {
+        val o = own
+        val e = external
+        return when {
+            o == null -> e
+            e == null -> o
+            o.isPlaying -> o
+            e.isPlaying -> e
+            else -> o
+        }
+    }
 
     private fun deliver(track: Track?) {
         val before = current

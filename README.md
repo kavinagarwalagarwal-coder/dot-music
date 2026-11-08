@@ -4,7 +4,17 @@
 
 Open the app and you're in the player: the album cover becomes a spinning record made of hundreds of dots, in a dot-matrix style inspired by Nothing. Another app does the playing: YouTube Music by default, or any player you choose (Dot Player, Spotify, JioSaavn…). Dot is the screen, the controls and the picks.
 
-[**⬇ Download the latest APK**](../../releases/tag/latest) · Android 8.0+ · Needs [YouTube Music](https://play.google.com/store/apps/details?id=com.google.android.apps.youtube.music) · No internet permission
+[**⬇ Download the latest APK**](../../releases/tag/latest) · Android 8.0+
+
+## Online music, inside Dot
+
+Settings → **Online music** turns on Dot's own player. Search, results, the queue and playback all happen in Dot:
+
+- **YouTube** (nearly every song): add your own free YouTube Data API key. Songs play in YouTube's official embedded player, in a small video card on the player screen. By YouTube's rules it plays only while Dot is on screen and may show ads.
+- **Audius** (1M+ independent artists): on by default, no sign-up, keeps playing with the screen off, with lock-screen controls.
+- **Jamendo** (Creative Commons music): add a free client ID; plays in the background too.
+
+When the queue runs out, the recommendation engine fills it: songs you've played before replay straight from where they came from (no search needed), and **Discover** ranks new songs from the Audius and Jamendo charts by the artists and genres you like.
 
 ## Choosing the player app
 
@@ -69,7 +79,7 @@ The widgets, the wallpaper and the player also follow other music apps (Spotify,
 
 ## Privacy
 
-No internet permission, no accounts, no analytics. The song, cover and play state are read from YouTube Music's media session. Your listening history (song, artist, how long you listened, the hour) is kept in the app's private storage to make recommendations, and never leaves the phone. Settings has **Forget my listening history**.
+Dot only goes online for the sources you turn on (YouTube with your own key, Audius, Jamendo). No accounts, no analytics. For other player apps, the song, cover and play state are read from their media session. Your listening history (song, artist, how long you listened, the hour) is kept in the app's private storage to make recommendations, and never leaves the phone. Settings has **Forget my listening history**.
 
 ## Build
 

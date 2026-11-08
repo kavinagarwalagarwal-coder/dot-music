@@ -46,4 +46,16 @@ object DotPrefs {
     /** Learn from what plays, for recommendations. */
     fun learn(c: Context) = p(c).getBoolean("learn", true)
     fun setLearn(c: Context, on: Boolean) = p(c).edit().putBoolean("learn", on).apply()
+
+    /** Your YouTube Data API key: turns on YouTube search and playback in Dot. */
+    fun youtubeKey(c: Context): String = p(c).getString("youtube_key", null).orEmpty().trim()
+    fun setYoutubeKey(c: Context, key: String) = p(c).edit().putString("youtube_key", key.trim()).apply()
+
+    /** Audius: free, no key. */
+    fun audius(c: Context) = p(c).getBoolean("audius", true)
+    fun setAudius(c: Context, on: Boolean) = p(c).edit().putBoolean("audius", on).apply()
+
+    /** Your Jamendo client id: turns on Jamendo. */
+    fun jamendoId(c: Context): String = p(c).getString("jamendo_id", null).orEmpty().trim()
+    fun setJamendoId(c: Context, id: String) = p(c).edit().putString("jamendo_id", id.trim()).apply()
 }

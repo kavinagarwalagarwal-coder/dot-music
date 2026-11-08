@@ -4,7 +4,11 @@
     <!-- Optional: lets the player react to the music's real beat. Nothing is ever recorded. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-    <!-- No INTERNET permission: nothing leaves the phone. -->
+    <!-- Dot's own player: search and stream from the sources you turn on, in the background too. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-feature android:name="android.software.live_wallpaper" android:required="false" />
 
     <!-- Another app plays the music; Dot needs to find music players and hand them songs. -->
@@ -51,6 +55,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Keeps Audius and Jamendo playing with the screen off; media notification and lock-screen controls. -->
+        <service
+            android:name=".PlaybackService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
 
         <!-- Settings and setup: widgets, wallpaper, YouTube Music, style. -->
         <activity
