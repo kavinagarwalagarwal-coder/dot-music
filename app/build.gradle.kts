@@ -20,7 +20,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             // Signed with the debug key so the release build installs straight from GitHub.
             signingConfig = signingConfigs.getByName("debug")
         }
@@ -41,6 +41,11 @@ android {
 dependencies {
     // MediaBrowserCompat: search another player app's library (the framework MediaBrowser can't search).
     implementation("androidx.media:media:1.7.0")
+    // Dot's own player: streams Audius and Jamendo, with background play and lock-screen controls.
+    implementation("androidx.media3:media3-exoplayer:1.8.0")
+    implementation("androidx.media3:media3-session:1.8.0")
+    // Real org.json for parsing tests (Android's is a stub in unit tests).
+    testImplementation("org.json:json:20240303")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test:core:1.6.1")

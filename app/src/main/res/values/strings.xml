@@ -23,7 +23,6 @@
     <string name="setting_beat">React to the real beat</string>
     <string name="setting_beat_note">The player ripples and the ring moves with the actual music. Android files this under the microphone permission, but the app only measures how loud each frequency is and never records anything. Off: a steady pulse instead.</string>
 
-    <string name="privacy">No internet permission. No accounts. Your listening history stays in this app\'s private storage on your phone and is never sent anywhere.</string>
 
     <string name="player_idle">Nothing playing</string>
     <string name="player_idle_hint">Tap For you to play something</string>
@@ -90,7 +89,6 @@
     <string name="forget_confirm">Forget everything Dot has learned about your taste? This can\'t be undone.</string>
     <string name="forget_yes">Forget</string>
     <string name="forgotten">Listening history forgotten</string>
-    <string name="tagline">Dot Music is a full-screen dot player with its own recommendations. Another app does the playing (YouTube Music, Dot Player, Spotify or any player you choose); Dot is the screen, the controls and the picks.</string>
     <string name="search_hint">Search %1$s</string>
     <string name="search_note">Type a song, artist or album and press search. %1$s plays the best match, and most apps keep similar songs going after it.</string>
     <string name="shelf_queue">In the player\'s queue</string>
@@ -150,4 +148,38 @@
     <string name="test_worked">It worked: now playing %1$s.</string>
     <string name="test_nothing">%1$s didn\'t change the song. Send a screenshot of this to Claude.</string>
     <string name="test_found">Matched in the library: %1$s</string>
+
+    <!-- Dot's own online player -->
+    <string name="tagline">Dot Music is a full-screen dot player with its own recommendations. It plays YouTube, Audius and Jamendo right inside Dot, or follows another player app you choose.</string>
+    <string name="privacy">Dot only goes online for the music sources you turn on: YouTube (with your own API key), Audius and Jamendo. No accounts, no analytics. Your listening history stays in this app\'s private storage on your phone and is never sent anywhere.</string>
+    <string name="section_online">Online music</string>
+    <string name="online_note">Search and play inside Dot. YouTube has nearly every song but, by YouTube\'s rules, plays only while Dot is on screen, in a small video card, and may show ads. Audius and Jamendo keep playing with the screen off.</string>
+    <string name="youtube_key">YouTube API key</string>
+    <string name="youtube_key_hint">Paste your key (starts with AIza…)</string>
+    <string name="youtube_key_steps">Free, about 5 minutes: 1. Open the Google Cloud console below and sign in. 2. Create a project. 3. Enable \"YouTube Data API v3\". 4. Go to Credentials → Create credentials → API key. 5. Copy the key and paste it above. The free quota is about 100 searches a day; songs you\'ve played before replay without a search.</string>
+    <string name="youtube_key_open">Open Google Cloud console</string>
+    <string name="setting_audius">Audius</string>
+    <string name="setting_audius_note">Over a million tracks from independent artists, free, plays in the background. No sign-up.</string>
+    <string name="jamendo_id">Jamendo client ID (optional)</string>
+    <string name="jamendo_id_hint">Paste your client ID</string>
+    <string name="jamendo_steps">Free Creative Commons music that plays in the background. Get a client ID by registering an app at developer.jamendo.com.</string>
+    <string name="player_other_note">When no online source is on, or for music you play in other apps, Dot follows this app instead.</string>
+    <string name="search_hint_online">Search songs, artists, albums</string>
+    <string name="search_note_online">Searches %1$s. Tap a song to play it in Dot; + plays it next.</string>
+    <string name="results_for">Results for \"%1$s\"</string>
+    <string name="clear">Clear</string>
+    <string name="searching">Searching…</string>
+    <string name="no_results">Nothing found.</string>
+    <string name="search_errors">Some sources didn\'t answer:\n%1$s</string>
+    <string name="shelf_queue_dot">Queue</string>
+    <string name="shelf_discover">Discover</string>
+    <string name="add_youtube">Add YouTube for nearly every song</string>
+    <string name="add_youtube_note">Paste a free YouTube API key in settings</string>
+    <string name="not_found">Couldn\'t find \"%1$s\" on your sources</string>
+    <string name="plays_next">\"%1$s\" plays next</string>
+    <string name="play_next">Play next</string>
+    <string name="play_failed">Couldn\'t play %1$s (%2$s). Skipping.</string>
+    <string name="yt_needs_screen">YouTube songs play while Dot is on screen</string>
+    <string name="bar_up_next">Up next</string>
+    <string name="and_join">" and "</string>
 </resources>

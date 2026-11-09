@@ -19,23 +19,31 @@ data class Listen(
     /** Local hour of day 0..23 when it started. */
     val hour: Int,
     val weekend: Boolean,
+    /** Dot's own player: where it came from ("youtube:…"), its cover, its genre. Empty for other apps. */
+    val mediaId: String = "",
+    val artUrl: String = "",
+    val genre: String = "",
 ) {
     fun encode(): String = listOf(
         VERSION, startedAt.toString(), esc(title), esc(artist), esc(source), durationMs.toString(),
         listenedMs.toString(), if (skipped) "1" else "0", hour.toString(), if (weekend) "1" else "0",
+        esc(mediaId), esc(artUrl), esc(genre),
     ).joinToString("\t")
 
     companion object {
-        private const val VERSION = "1"
+        private const val VERSION = "2"
 
         fun decode(line: String): Listen? {
             val f = line.split('\t')
-            if (f.size < 10 || f[0] != VERSION) return null
+            if (f.size < 10 || (f[0] != "1" && f[0] != VERSION)) return null
             return runCatching {
                 Listen(
                     startedAt = f[1].toLong(), title = unesc(f[2]), artist = unesc(f[3]), source = unesc(f[4]),
                     durationMs = f[5].toLong(), listenedMs = f[6].toLong(), skipped = f[7] == "1",
                     hour = f[8].toInt().coerceIn(0, 23), weekend = f[9] == "1",
+                    mediaId = f.getOrNull(10)?.let(::unesc).orEmpty(),
+                    artUrl = f.getOrNull(11)?.let(::unesc).orEmpty(),
+                    genre = f.getOrNull(12)?.let(::unesc).orEmpty(),
                 )
             }.getOrNull()
         }

@@ -18,7 +18,14 @@ data class Track(
     val speed: Float,
     val durationMs: Long,
     val openApp: PendingIntent?,
+    /** Dot's own player: the source id ("youtube:…"), cover URL and genre. Empty for other apps. */
+    val mediaId: String = "",
+    val artUrl: String = "",
+    val genre: String = "",
 ) {
+    /** Playing in Dot's own player (YouTube, Audius, Jamendo), not another app. */
+    val isDot: Boolean get() = packageName.startsWith(DotPlayback.SOURCE_PREFIX)
+
     /** Same song (ignoring play state and position). */
     val id: String get() = "$packageName|$title|$artist"
 

@@ -39,6 +39,9 @@ class TasteEngine(
         val reason: String,
         val kind: Kind = Kind.SONG,
         val score: Double = 0.0,
+        /** Where Dot last played it ("youtube:…", "audius:…"), so it plays again without a search. */
+        val mediaId: String = "",
+        val artUrl: String = "",
     ) {
         /** What to ask YouTube Music for. */
         val query: String get() = if (kind == Kind.ARTIST) artist else "$title $artist".trim()
@@ -67,6 +70,12 @@ class TasteEngine(
         val slots = DoubleArray(SLOTS)
         /** Recently heard: needs a rest. */
         var fatigue = 0.0
+        var mediaId = ""
+        var artUrl = ""
+        var genre = ""
+
+        fun pick(reason: String, kind: Kind = Kind.SONG, score: Double = 0.0) =
+            Pick(title, artist, key, reason, kind, score, mediaId, artUrl)
     }
 
     class Artist(val key: String, var name: String) {
@@ -79,6 +88,8 @@ class TasteEngine(
     val artists = HashMap<String, Artist>()
     private val next = HashMap<String, HashMap<String, Double>>()
     private val artistNext = HashMap<String, HashMap<String, Double>>()
+    /** Decayed liking per genre (lowercase), from sources that tag genres. */
+    val genres = HashMap<String, Double>()
     private val slotTotals = DoubleArray(SLOTS)
     private var slotSum = 0.0
     var listenCount = 0
@@ -106,9 +117,12 @@ class TasteEngine(
             val artist = artists.getOrPut(aKey) { Artist(aKey, "") }
             artist.name = SongKeys.displayArtist(l.artist, l.title)
 
+            if (l.mediaId.isNotBlank()) { song.mediaId = l.mediaId; if (l.artUrl.isNotBlank()) song.artUrl = l.artUrl }
+            if (l.genre.isNotBlank()) song.genre = l.genre
             val w = outcome(l)
             val age = (now - l.startedAt).coerceAtLeast(0)
             val decay = half(age, HALF_LIFE_MS)
+            if (l.genre.isNotBlank()) genres.merge(l.genre.lowercase(), w * decay, Double::plus)
             song.plays++
             song.score += w * decay
             song.recent += w * half(age, WEEK_MS)
@@ -182,7 +196,7 @@ class TasteEngine(
                     s.good + s.bad < 2 -> "Worth another listen"
                     else -> "In your rotation"
                 }
-                Pick(s.title, s.artist, s.key, reason, Kind.SONG, score)
+                s.pick(reason, Kind.SONG, score)
             }.toList()
         return diversify(scored, limit, curArtist)
     }
@@ -196,7 +210,7 @@ class TasteEngine(
             .map { s -> s to context(s, slot) }
             .filter { it.second > 0.15 }
             .map { (s, ctx) ->
-                Pick(s.title, s.artist, s.key, "You play this most in the ${SLOT_NAMES[slot]}",
+                s.pick("You play this most in the ${SLOT_NAMES[slot]}",
                     score = 0.6 * ctx + 0.4 * ln1p(max(0.0, s.score)) / maxAff + 0.15 * sampleBeta(1 + s.good, 1 + s.bad))
             }.toList()
         return diversify(scored, limit, null)
@@ -205,7 +219,7 @@ class TasteEngine(
     /** What you keep coming back to this week. */
     fun onRepeat(limit: Int = 8): List<Pick> {
         val scored = songs.values.filter { it.recent > 0.5 && !banned(it) }.map { s ->
-            Pick(s.title, s.artist, s.key, if (s.weekPlays >= 3) "Played ${s.weekPlays} times this week" else "Lately",
+            s.pick(if (s.weekPlays >= 3) "Played ${s.weekPlays} times this week" else "Lately",
                 score = s.recent)
         }
         return diversify(scored, limit, null, artistPenalty = 0.1)
@@ -215,7 +229,7 @@ class TasteEngine(
     fun rediscover(limit: Int = 8): List<Pick> {
         val scored = songs.values.filter { it.good >= 2.5 && now - it.lastPlayed > 21 * DAY_MS && !banned(it) }.map { s ->
             val ratio = s.good / (s.good + s.bad)
-            Pick(s.title, s.artist, s.key, "Last played ${ago(now - s.lastPlayed)} ago",
+            s.pick("Last played ${ago(now - s.lastPlayed)} ago",
                 score = s.good * ratio * (0.8 + 0.4 * random.nextDouble()))
         }
         return diversify(scored, limit, null)
@@ -248,7 +262,7 @@ class TasteEngine(
         }.sortedByDescending { it.score }.take(limit / 2)
 
         val seeds = songs.values.filter { it.good >= 1.5 && !banned(it) }.map { s ->
-            Pick(s.title, s.artist, s.key, "Start a radio from this", Kind.SONG,
+            s.pick("A favourite to start a run from", Kind.SONG,
                 sampleBeta(1 + s.good, 1 + s.bad) + 0.3 * random.nextDouble())
         }
         val radios = diversify(seeds, limit - artistPicks.size, null, artistPenalty = 0.5)
@@ -257,6 +271,42 @@ class TasteEngine(
             Pick("", it.name, "artist:${it.key}", "Shuffle ${it.name}", Kind.ARTIST, it.score)
         } else emptyList()
         return (artistPicks + fallback + radios).take(limit)
+    }
+
+    /** A song from outside your history (a chart, a search) that Discover might suggest. */
+    data class Candidate(
+        val title: String, val artist: String, val genre: String, val mediaId: String, val artUrl: String,
+        /** Why it's here if nothing personal applies, e.g. "Trending on Audius". */
+        val origin: String,
+    )
+
+    /** Your favourite genre lately, if your sources tag genres. */
+    fun topGenre(): String? = genres.filterValues { it > 0 }.maxByOrNull { it.value }?.key
+
+    /**
+     * Rank songs you've never played: artists you already like count most, then genres you like,
+     * with a little randomness so Discover changes. Songs you've heard are left out.
+     */
+    fun rankNew(candidates: List<Candidate>, limit: Int = 8): List<Pick> {
+        val maxArtist = artists.values.maxOfOrNull { max(0.0, it.score) }?.takeIf { it > 0 } ?: 1.0
+        val maxGenre = genres.values.maxOfOrNull { max(0.0, it) }?.takeIf { it > 0 } ?: 1.0
+        val scored = candidates.asSequence()
+            .filter { it.title.isNotBlank() && SongKeys.key(it.title, it.artist) !in songs }
+            .distinctBy { SongKeys.key(it.title, it.artist) }
+            .map { c ->
+                val artist = artists[SongKeys.artistKey(c.artist, c.title)]
+                val art = max(0.0, artist?.score ?: 0.0) / maxArtist
+                val gen = max(0.0, genres[c.genre.lowercase()] ?: 0.0) / maxGenre
+                if ((artist?.score ?: 0.0) < -0.5) return@map null
+                val reason = when {
+                    art > 0.05 -> "New to you, by ${artist!!.name}"
+                    gen > 0.3 -> "Because you like ${c.genre}"
+                    else -> c.origin
+                }
+                Pick(SongKeys.displayTitle(c.title, c.artist), SongKeys.cleanArtist(c.artist, c.title), SongKeys.key(c.title, c.artist),
+                    reason, Kind.SONG, 0.5 * art + 0.3 * gen + 0.15 * random.nextDouble(), c.mediaId, c.artUrl)
+            }.filterNotNull().toList()
+        return diversify(scored, limit, null, artistPenalty = 0.4)
     }
 
     // ---------------------------------------------------------------- parts

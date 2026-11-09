@@ -27,6 +27,9 @@ class DotPlayerView(context: Context) : View(context), Choreographer.FrameCallba
         stage.resize(w, h, insets?.systemWindowInsetTop?.toFloat() ?: 0f, insets?.systemWindowInsetBottom?.toFloat() ?: 0f)
     }
 
+    /** Re-lay out the stage after its reserved space changed. */
+    fun relayout() { if (width > 0 && height > 0) onSizeChanged(width, height, width, height); invalidate() }
+
     override fun onAttachedToWindow() { super.onAttachedToWindow(); start() }
     override fun onDetachedFromWindow() { stop(); super.onDetachedFromWindow() }
 

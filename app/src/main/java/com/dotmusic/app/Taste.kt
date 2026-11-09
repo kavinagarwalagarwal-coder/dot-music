@@ -76,6 +76,7 @@ object Taste {
             startedAt = o.startedAt, title = o.track.title, artist = o.track.artist, source = o.track.packageName,
             durationMs = o.duration, listenedMs = o.listened, skipped = skipped,
             hour = cal.get(Calendar.HOUR_OF_DAY), weekend = day == Calendar.SATURDAY || day == Calendar.SUNDAY,
+            mediaId = o.track.mediaId, artUrl = o.track.artUrl, genre = o.track.genre,
         )
         io.execute {
             val list = load(ctx)
@@ -106,6 +107,16 @@ object Taste {
     }
 
     fun count(): Int = shelves?.listens ?: 0
+
+    /** Run something with a fresh engine on the background thread; [done] gets its result on the main thread. */
+    fun <T> withEngine(done: (T) -> Unit, work: (TasteEngine) -> T) {
+        val ctx = app ?: return
+        io.execute {
+            val engine = TasteEngine(load(ctx).toList(), System.currentTimeMillis())
+            val result = work(engine)
+            main.post { done(result) }
+        }
+    }
 
     fun clear(context: Context) {
         val ctx = context.applicationContext
