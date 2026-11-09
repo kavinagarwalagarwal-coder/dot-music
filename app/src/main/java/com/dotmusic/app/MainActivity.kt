@@ -191,18 +191,38 @@ class MainActivity : Activity() {
         android.app.AlertDialog.Builder(this)
             .setTitle(getString(R.string.check_title, app))
             .setMessage(message)
-            .setPositiveButton(R.string.check_test) { _, _ ->
-                val route = PlayerApp.play(this, getString(R.string.check_test_query))
-                Toast.makeText(this, getString(when (route) {
-                    PlayerApp.Route.SESSION -> R.string.route_session
-                    PlayerApp.Route.INTENT -> R.string.route_intent
-                    PlayerApp.Route.SEARCH_PAGE -> R.string.route_page
-                    PlayerApp.Route.OPENED_APP -> R.string.route_opened
-                    PlayerApp.Route.NONE -> R.string.route_none
-                }, app), Toast.LENGTH_LONG).show()
-            }
+            .setPositiveButton(R.string.check_test) { _, _ -> runTestSong() }
             .setNegativeButton(R.string.close, null)
             .show()
+    }
+
+    /** Send a test song, then watch whether the playing song actually changes, and say what happened. */
+    private fun runTestSong() {
+        val app = PlayerApp.name(this)
+        val before = MusicCenter.current?.let { SongKeys.key(it.title, it.artist) }
+        val waiting = android.app.AlertDialog.Builder(this)
+            .setTitle(R.string.test_title).setMessage(getString(R.string.test_sending, app)).setCancelable(true).show()
+        PlayerApp.play(this, getString(R.string.check_test_query)) { outcome ->
+            // Give the app a few seconds to load and start the song.
+            window.decorView.postDelayed({
+                if (isFinishing || isDestroyed) return@postDelayed
+                waiting.dismiss()
+                val now = MusicCenter.current
+                val changed = now != null && SongKeys.key(now.title, now.artist) != before
+                val verdict = when {
+                    changed && now!!.isPlaying -> getString(R.string.test_worked, "${now.title} — ${now.artist}")
+                    outcome.route == PlayerApp.Route.OPENED_APP -> getString(R.string.route_opened, app)
+                    outcome.route == PlayerApp.Route.NONE -> getString(R.string.route_none, app)
+                    else -> getString(R.string.test_nothing, app)
+                }
+                val found = outcome.found?.let { "\n" + getString(R.string.test_found, it) }.orEmpty()
+                android.app.AlertDialog.Builder(this)
+                    .setTitle(R.string.test_title)
+                    .setMessage(verdict + found + "\n\n" + outcome.steps.joinToString("\n") { "•  $it" })
+                    .setPositiveButton(R.string.close, null)
+                    .show()
+            }, TEST_WAIT_MS)
+        }
     }
 
     private fun pin(cls: Class<*>) {
@@ -247,5 +267,6 @@ class MainActivity : Activity() {
 
     private companion object {
         const val PICK_PHOTO = 7
+        const val TEST_WAIT_MS = 6_000L
     }
 }
