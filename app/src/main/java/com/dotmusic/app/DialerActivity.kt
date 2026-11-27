@@ -1013,28 +1013,7 @@ class DialerActivity : Activity() {
     }
 
     private fun dial(digits: String) = dialTarget(activeMatch?.mainNumber ?: digits.trim())
-        if (target.isEmpty()) {
-            Toast.makeText(this, R.string.need_number, Toast.LENGTH_SHORT).show()
-            return
-        }
-        if (!enabled(Manifest.permission.CALL_PHONE)) {
-            pendingCall = target
-            requestPermissions(arrayOf(Manifest.permission.CALL_PHONE), REQ_CALL)
-            return
-        }
-        closeSheet()
-        val uri = Uri.fromParts("tel", target, null)
-        try {
-            if (isDefaultDialer()) {
-                val telecom = getSystemService(android.telecom.TelecomManager::class.java) ?: error("No telecom")
-                telecom.placeCall(uri, Bundle())
-            } else {
-                startActivity(Intent(Intent.ACTION_CALL, uri))
-            }
-        } catch (_: Exception) {
-            Toast.makeText(this, R.string.call_failed, Toast.LENGTH_LONG).show()
-        }
-    }
+
 
     @Deprecated("Platform permission result callback is sufficient here.")
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
