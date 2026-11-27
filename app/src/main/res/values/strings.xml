@@ -182,4 +182,19 @@
     <string name="yt_needs_screen">YouTube songs play while Dot is on screen</string>
     <string name="bar_up_next">Up next</string>
     <string name="and_join">" and "</string>
+
+    <!-- Updating from the app's own GitHub release -->
+    <string name="section_updates">Updates</string>
+    <string name="update_check">Check for updates</string>
+    <string name="update_note">New builds download and install straight from Dot Music\'s GitHub release. Android asks once for permission to install, then each later build replaces this one instead of needing an uninstall first.</string>
+    <string name="update_available">Version %1$s is out</string>
+    <string name="update_available_note">Download it now? Android shows its own install prompt, and your settings, history and player choice stay as they are.</string>
+    <string name="update_download">Download</string>
+    <string name="update_downloading">Downloading the new version…</string>
+    <string name="update_up_to_date">Version %1$s is the latest</string>
+    <string name="update_check_failed">Couldn\'t reach GitHub. Check your connection and try again.</string>
+    <string name="update_download_failed">Download failed. Try again.</string>
+    <string name="update_install_failed">The install didn\'t finish: %1$s</string>
+    <string name="update_allow_note">Android needs your permission before Dot Music can install its own updates. Turn on Allow from this source for Dot Music, come back and check again.</string>
+    <string name="update_open_settings">Open settings</string>
 </resources>

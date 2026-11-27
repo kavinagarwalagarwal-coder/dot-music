@@ -21,7 +21,25 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.13"
+      - name: Use the fixed signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.DOT_KEYSTORE_B64 }}
+        run: |
+          # Without this, every run signed with a fresh debug key and Android treated each APK as
+          # a different app, so updating meant uninstalling first.
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/dot-release.p12"
+            echo "DOT_KEYSTORE_PATH=$RUNNER_TEMP/dot-release.p12" >> "$GITHUB_ENV"
+          else
+            echo "::warning::DOT_KEYSTORE_B64 is not set: this APK is debug-signed and won't update in place."
+          fi
       - name: Build and unit test
+        env:
+          DOT_VERSION_CODE: ${{ github.run_number }}
+          DOT_VERSION_NAME: 1.0.${{ github.run_number }}
+          DOT_KEYSTORE_PASSWORD: ${{ secrets.DOT_KEYSTORE_PASSWORD }}
+          DOT_KEY_ALIAS: dot
+          DOT_KEY_PASSWORD: ${{ secrets.DOT_KEYSTORE_PASSWORD }}
         run: |
           set -o pipefail
           gradle --no-daemon :app:testDebugUnitTest :app:assembleRelease 2>&1 | tee gradle.log || {
@@ -79,7 +97,11 @@ jobs:
       - env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: 1.0.${{ github.run_number }}
         run: |
+          # The app fetches this to see whether a newer build exists.
+          printf '{"versionCode":%s,"versionName":"%s","apk":"dot-music.apk"}' "$VERSION_CODE" "$VERSION_NAME" > update.json
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest dot-music.apk --title "Dot Music (latest build)" \
-            --notes "Built from ${GITHUB_SHA::7}. Install dot-music.apk on your phone."
+          gh release create latest dot-music.apk update.json --title "Dot Music (latest build)" \
+            --notes "Version ${VERSION_NAME}, built from ${GITHUB_SHA::7}. In Dot Music open settings and tap Check for updates to install it in place."

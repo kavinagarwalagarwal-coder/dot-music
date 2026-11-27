@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.util.LruCache
+import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -26,6 +27,18 @@ object Net {
             val body = (if (code in 200..299) c.inputStream else c.errorStream)?.bufferedReader()?.use { it.readText() }.orEmpty()
             if (code !in 200..299) throw IOException("HTTP $code: ${body.take(300)}")
             return body
+        } finally { c.disconnect() }
+    }
+
+    /** Stream a URL into a file (a downloaded update, say); also off the main thread. */
+    fun download(url: String, out: File, timeoutMs: Int = 60_000) {
+        val c = URL(url).openConnection() as HttpURLConnection
+        try {
+            c.connectTimeout = 15_000; c.readTimeout = timeoutMs
+            c.setRequestProperty("User-Agent", AGENT)
+            val code = c.responseCode
+            if (code !in 200..299) throw IOException("HTTP $code")
+            c.inputStream.use { input -> out.outputStream().use { input.copyTo(it) } }
         } finally { c.disconnect() }
     }
 

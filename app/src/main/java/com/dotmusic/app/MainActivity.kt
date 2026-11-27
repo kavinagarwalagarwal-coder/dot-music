@@ -28,6 +28,7 @@ class MainActivity : Activity() {
     private lateinit var forget: Button
     private lateinit var photoButton: Button
     private lateinit var removePhoto: Button
+    private lateinit var updateButton: Button
     private val d by lazy { resources.displayMetrics.density }
     private val doto: Typeface by lazy {
         runCatching { Typeface.Builder(assets, "fonts/Doto.ttf").setFontVariationSettings("'wght' 900, 'ROND' 100").build() }
@@ -49,6 +50,7 @@ class MainActivity : Activity() {
         access.alpha = if (ok) 0.6f else 1f
         refreshPlayer()
         forget.text = getString(R.string.forget_history, Taste.count())
+        checkForUpdates(loud = false)
     }
 
     private fun buildUi(): View {
@@ -148,6 +150,11 @@ class MainActivity : Activity() {
             }
         })
 
+        column.addView(heading(getString(R.string.section_updates), 20f))
+        updateButton = button(getString(R.string.update_check)) { checkForUpdates(loud = true) }
+        column.addView(updateButton)
+        column.addView(body(getString(R.string.update_note)))
+
         column.addView(body(getString(R.string.privacy)).apply { setPadding(0, (28 * d).toInt(), 0, 0) })
         return ScrollView(this).apply { setBackgroundColor(Color.BLACK); addView(column) }
     }
@@ -235,6 +242,82 @@ class MainActivity : Activity() {
                     .show()
             }, TEST_WAIT_MS)
         }
+    }
+
+    // -------------------------------------------------------------- updates
+
+    /** Ask the release for the newest build; stays quiet unless there is one, or you asked. */
+    private fun checkForUpdates(loud: Boolean) {
+        updateButton.isEnabled = false
+        Updates.background {
+            val latest = Updates.latest()
+            val installed = Updates.installedCode(this)
+            val name = Updates.installedName(this)
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                updateButton.isEnabled = true
+                when {
+                    latest == null -> if (loud) {
+                        Toast.makeText(this, R.string.update_check_failed, Toast.LENGTH_LONG).show()
+                    }
+                    latest.versionCode > installed -> offerUpdate(latest)
+                    loud -> Toast.makeText(
+                        this, getString(R.string.update_up_to_date, name), Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+
+    private fun offerUpdate(latest: Updates.Release) {
+        android.app.AlertDialog.Builder(this)
+            .setTitle(getString(R.string.update_available, latest.versionName))
+            .setMessage(R.string.update_available_note)
+            .setPositiveButton(R.string.update_download) { _, _ -> downloadUpdate() }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun downloadUpdate() {
+        val waiting = android.app.AlertDialog.Builder(this)
+            .setTitle(R.string.section_updates)
+            .setMessage(R.string.update_downloading)
+            .setCancelable(false)
+            .show()
+        Updates.background {
+            val apk = runCatching { Updates.download(this) }.getOrNull()
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                waiting.dismiss()
+                when {
+                    apk == null ->
+                        Toast.makeText(this, R.string.update_download_failed, Toast.LENGTH_LONG).show()
+                    !Updates.canInstall(this) -> askInstallPermission()
+                    else -> runCatching { Updates.install(this, apk) }.onFailure { failure ->
+                        Toast.makeText(
+                            this,
+                            getString(R.string.update_install_failed, failure.message.orEmpty()),
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun askInstallPermission() {
+        android.app.AlertDialog.Builder(this)
+            .setTitle(R.string.section_updates)
+            .setMessage(R.string.update_allow_note)
+            .setPositiveButton(R.string.update_open_settings) { _, _ ->
+                runCatching {
+                    startActivity(
+                        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, android.net.Uri.parse("package:$packageName"))
+                    )
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun pin(cls: Class<*>) {
