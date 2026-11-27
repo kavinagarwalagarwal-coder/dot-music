@@ -265,7 +265,7 @@ class DotCallActivity : Activity() {
                     if (letters.isNotEmpty()) addView(
                         Glass.text(this@DotCallActivity, letters, 7f, Glass.MUTED, dot = true, spacing = 0.12f)
                     )
-                    setOnClickListener { tone(digit.first()) }
+                    setOnClickListener { tone(this, digit.first()) }
                 }, LinearLayout.LayoutParams(0, dp(48f), 1f).apply { setMargins(dp(3f), dp(3f), dp(3f), dp(3f)) })
             }
             card.addView(row, LinearLayout.LayoutParams(-1, -2))
@@ -273,10 +273,10 @@ class DotCallActivity : Activity() {
         return card
     }
 
-    private fun tone(key: Char) {
-        Glass.tap(this)
+    private fun tone(key: View, digit: Char) {
+        Glass.tap(key)
         val call = DotInCallService.currentCall ?: return
-        runCatching { call.playDtmfTone(key) }
+        runCatching { call.playDtmfTone(digit) }
         handler.postDelayed({ runCatching { call.stopDtmfTone() } }, 160)
     }
 

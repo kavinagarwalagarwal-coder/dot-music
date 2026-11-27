@@ -338,12 +338,12 @@ class DialerActivity : Activity() {
         if (letters.isNotEmpty()) addView(Glass.text(this@DialerActivity, letters, 8f, Glass.MUTED, dot = true, spacing = 0.14f).apply {
             gravity = Gravity.CENTER
         })
-        setOnClickListener { tap(digit) }
-        if (digit == "0") setOnLongClickListener { tap("+"); true }
+        setOnClickListener { tap(this, digit) }
+        if (digit == "0") setOnLongClickListener { tap(this, "+"); true }
     }
 
-    private fun tap(digit: String) {
-        Glass.tap(this)
+    private fun tap(key: View, digit: String) {
+        Glass.tap(key)
         number.append(digit)
         refreshNumber()
     }
@@ -672,7 +672,7 @@ class DialerActivity : Activity() {
     private fun openPerson(person: Person) {
         closeSheet()
         val overlay = FrameLayout(this).apply {
-            background = Color.argb(168, 3, 4, 6)
+            background = android.graphics.drawable.ColorDrawable(Color.argb(168, 3, 4, 6))
             isClickable = true
             setOnClickListener { closeSheet() }
         }
