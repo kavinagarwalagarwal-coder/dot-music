@@ -35,6 +35,7 @@
         <activity
             android:name=".DialerActivity"
             android:exported="false"
+            android:label="@string/dialer_name"
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustNothing"
             android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen" />
