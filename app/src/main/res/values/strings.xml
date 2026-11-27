@@ -148,6 +148,7 @@
     <string name="speed_dial_desc">Speed dial on the 1 key</string>
     <string name="speed_dial_none">None</string>
     <string name="voicemail_longpress">Long-press 1 for voicemail</string>
+    <string name="section_missed">Missed calls</string>
     <string name="missed_sound_desc">Missed-call sound</string>
     <string name="missed_sound_set">Custom</string>
     <string name="save">Save</string>

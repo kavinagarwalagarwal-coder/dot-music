@@ -5,12 +5,16 @@ import android.app.AlertDialog
 import android.app.role.RoleManager
 import android.content.Intent
 import android.graphics.Color
+import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.text.InputType
 import android.view.Gravity
 import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -257,7 +261,7 @@ class SettingsActivity : Activity() {
             hint = getString(R.string.enter_number)
             setText(initial)
             textSize = 18f
-            inputType = InputType.TYPE_CLASS_PHONE
+            inputType = android.text.InputType.TYPE_CLASS_PHONE
             imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_DONE
             setTextColor(Glass.INK)
         }

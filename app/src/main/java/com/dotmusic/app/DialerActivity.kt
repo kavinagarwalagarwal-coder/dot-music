@@ -11,6 +11,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -376,10 +377,10 @@ class DialerActivity : Activity() {
             gravity = Gravity.CENTER
         })
         setOnClickListener {
-            if (digit == "1" && Store.speedDial(this) != null) {
+            if (digit == "1" && Store.speedDial(this@DialerActivity) != null) {
                 Glass.tap(this)
-                Toast.makeText(this, R.string.speed_dial, Toast.LENGTH_SHORT).show()
-                dialTarget(Store.speedDial(this)!!)
+                Toast.makeText(this@DialerActivity, R.string.speed_dial, Toast.LENGTH_SHORT).show()
+                dialTarget(Store.speedDial(this@DialerActivity)!!)
             } else {
                 tap(this, digit)
             }
