@@ -60,7 +60,7 @@
     <string name="onboard_access_title">Two permissions, nothing else</string>
     <string name="onboard_access_body">Contacts and call history are read on this phone only, to show names, photos and your recents. Dot has no account and sends nothing anywhere.</string>
     <string name="onboard_style_title">Make it yours</string>
-    <string name="onboard_style_body">White dots follow Nothing's style; off keeps each photo's own colours. You can change this later in settings, and each contact can have its own photo.</string>
+    <string name="onboard_style_body">White dots follow Nothing\'s style; off keeps each photo\'s own colours. You can change this later in settings, and each contact can have its own photo.</string>
     <string name="white_dots">White dots</string>
     <string name="continue_label">Continue</string>
     <string name="later">Later</string>
