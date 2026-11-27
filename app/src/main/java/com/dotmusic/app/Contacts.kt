@@ -12,6 +12,17 @@ data class Person(
     val photoUri: String?
 )
 
+/** One person, with all of their numbers. The People tab shows this instead of one row per number. */
+data class ContactGroup(
+    val key: String,
+    val name: String,
+    val numbers: List<String>,
+    val photoUri: String?
+) {
+    val mainNumber: String get() = numbers.firstOrNull() ?: ""
+    val mainKey: String get() = Store.key(mainNumber)
+}
+
 /** Reading the address book, plus the name behind a number. Both block, so call them off the UI. */
 object Contacts {
     fun load(context: Context, limit: Int = 800): List<Person> {
@@ -79,18 +90,7 @@ object Contacts {
         }.getOrNull()
     }
 
-    /** One person, with all of their numbers. The People tab shows this instead of one row per number. */
-    data class ContactGroup(
-        val key: String,
-        val name: String,
-        val numbers: List<String>,
-        val photoUri: String?
-    ) {
-        val mainNumber: String get() = numbers.firstOrNull() ?: ""
-        val mainKey: String get() = Store.key(mainNumber)
-    }
-
-    /** Reading the address book once, grouped by contact. Both block, so call them off the UI. */
+    /** Reading the address book once, grouped by contact id. Both block, so call them off the UI. */
     fun contacts(context: Context, limit: Int = 400): List<ContactGroup> {
         val out = ArrayList<ContactGroup>()
         runCatching {
@@ -109,19 +109,31 @@ object Contacts {
                 val nameIndex = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
                 val numberIndex = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER)
                 val photoIndex = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.PHOTO_URI)
-                val groups = linkedMapOf<Long, ContactGroup>()
-                while (cursor.moveToNext() && groups.size < limit) {
+                val idToNumbers = linkedMapOf<Long, MutableList<String>>()
+                val idToName = mutableMapOf<Long, String>()
+                val idToPhoto = mutableMapOf<Long, String?>()
+                while (cursor.moveToNext() && idToNumbers.size < limit) {
                     val id = cursor.getLong(idIndex)
                     val name = cursor.getString(nameIndex).orEmpty().trim().ifBlank { " " }
                     val number = cursor.getString(numberIndex).orEmpty().trim()
                     if (number.isBlank()) continue
                     if (Store.key(number).isEmpty()) continue
                     val photo = cursor.getString(photoIndex)
-                    groups.getOrPut(id) {
-                        ContactGroup(Store.key(number), name, mutableListOf(), photo?.takeUnless { it.isBlank() })
-                    }.numbers.add(number)
+                    idToNumbers.getOrPut(id) { mutableListOf() }.add(number)
+                    idToName.putIfAbsent(id, name)
+                    idToPhoto.putIfAbsent(id, photo?.takeUnless { it.isBlank() })
                 }
-                groups.values.forEach { out.add(it) }
+                idToNumbers.forEach { (id, nums) ->
+                    val mainNumber = nums.first()
+                    out.add(
+                        ContactGroup(
+                            Store.key(mainNumber),
+                            idToName[id] ?: "",
+                            nums.toList(),
+                            idToPhoto[id]
+                        )
+                    )
+                }
             }
         }
         return out
