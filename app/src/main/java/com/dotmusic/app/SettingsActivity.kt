@@ -251,7 +251,7 @@ class SettingsActivity : Activity() {
             type = "audio/ringtone"
             putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
             putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, getString(R.string.missed_sound_desc))
-            putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(Store.missedSoundUri(this) ?: ""))
+            putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(Store.missedSoundUri(this@SettingsActivity) ?: ""))
         }
         startActivityForResult(intent, REQ_SOUND)
     }
