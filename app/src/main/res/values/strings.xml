@@ -119,4 +119,30 @@
     <string name="update_allow_note">Android needs your permission before Dot Phone can install its own updates. Turn on Allow from this source for Dot Phone, come back and check again.</string>
     <string name="update_install_failed">The install did not finish: %1$s</string>
     <string name="open_settings">Open settings</string>
+
+    <!-- Missed calls -->
+    <string name="missed_title">Missed call</string>
+    <string name="missed_count">%1$d missed call%2$s</string>
+    <string name="call_back">Call back</string>
+    <string name="clear_missed">Clear</string>
+
+    <!-- Missed-call settings -->
+    <string name="missed_notifications">Missed-call notifications</string>
+    <string name="missed_notifications_note">A notification and badge for missed calls you haven\'t returned yet</string>
+    <string name="badge">Badge</string>
+    <string name="badge_note">Show a count on the keypad header</string>
+    <string name="missed_call_sound">Missed-call sound</string>
+    <string name="haptics">Haptics</string>
+    <string name="haptics_note">Light taps on keys and buttons</string>
+    <string name="theme">Theme</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system">Follow system</string>
+    <string name="ringtone">Ringtone for this contact</string>
+    <string name="choose_ringtone">Choose ringtone</string>
+    <string name="vibration">Vibration</string>
+    <string name="speed_dial">Speed dial</string>
+    <string name="voicemail">Voicemail</string>
+    <string name="setting_on">On</string>
+    <string name="setting_off">Off</string>
+    <string name="notifications">Notifications</string>
 </resources>
