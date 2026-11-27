@@ -96,7 +96,9 @@ object Glass {
 
     /** Press feedback, the light tap the whole app uses. */
     fun tap(v: View) {
-        v.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
+        if (Store.hapticsEnabled(v.context)) {
+            v.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
+        }
     }
 
     fun blend(a: Int, b: Int, f: Float): Int = Color.rgb(

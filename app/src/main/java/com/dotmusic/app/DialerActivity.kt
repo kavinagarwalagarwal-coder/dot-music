@@ -62,6 +62,8 @@ class DialerActivity : Activity() {
     private var pendingCall: String? = null
     private var sheet: View? = null
     private var pickingFor: ContactGroup? = null
+    private var activeMatch: ContactGroup? = null
+    private var searchToken = 0
     private var bottomInset = 0
     private val systemPhotos = android.util.LruCache<String, Bitmap>(48)
 
@@ -370,7 +372,23 @@ class DialerActivity : Activity() {
         if (letters.isNotEmpty()) addView(Glass.text(this@DialerActivity, letters, 8f, Glass.MUTED, dot = true, spacing = 0.14f).apply {
             gravity = Gravity.CENTER
         })
-        setOnClickListener { tap(this, digit) }
+        if (digit == "1") addView(Glass.text(this@DialerActivity, "VM", 8f, Glass.MUTED, dot = true, spacing = 0.14f).apply {
+            gravity = Gravity.CENTER
+        })
+        setOnClickListener {
+            if (digit == "1" && Store.speedDial(this) != null) {
+                Glass.tap(this)
+                Toast.makeText(this, R.string.speed_dial, Toast.LENGTH_SHORT).show()
+                dialTarget(Store.speedDial(this)!!)
+            } else {
+                tap(this, digit)
+            }
+        }
+        if (digit == "1") setOnLongClickListener {
+            Glass.tap(this)
+            dialTarget("1")
+            true
+        }
         if (digit == "0") setOnLongClickListener { tap(this, "+"); true }
     }
 
@@ -385,28 +403,84 @@ class DialerActivity : Activity() {
         display.text = if (text.isEmpty()) getString(R.string.enter_number) else text
         display.setTextColor(if (text.isEmpty()) Glass.DIM else Glass.INK)
         callButton.alpha = if (text.isEmpty()) 0.5f else 1f
+        activeMatch = null
+        matched.text = ""
         avatar.visibility = View.GONE
-        lookupName(text)
+        if (text.isNotEmpty()) lookupName(text)
     }
 
     private fun lookupName(text: String) {
-        val token = ++nameToken
-        matched.text = ""
-        if (text.length < 3 || !enabled(Manifest.permission.READ_CONTACTS)) return
-        Thread {
-            val found = Contacts.nameFor(this, text)
-            runOnUiThread {
-                if (token != nameToken || isFinishing) return@runOnUiThread
-                matched.text = found?.uppercase().orEmpty()
-                if (found != null) showTypedAvatar(Store.key(text))
-            }
-        }.start()
+        val token = ++searchToken
+        val digitsOnly = text.filter { it.isDigit() }
+        if (digitsOnly.length >= 2 && digitsOnly.length <= 10 && digitsOnly == text) {
+            t9Search(text, token)
+        } else if (digitsOnly.isNotEmpty()) {
+            fallbackNumberLookup(text, token)
+        }
     }
 
     private fun showTypedAvatar(key: String) {
         val bitmap = ContactPhotos.avatar(this, key, dp(44f), Store.whiteDots(this)) ?: return
         avatar.setImageBitmap(bitmap)
         avatar.visibility = View.VISIBLE
+    }
+
+    private fun t9Of(name: String): String {
+        val map = mapOf(
+            'A' to '2', 'B' to '2', 'C' to '2',
+            'D' to '3', 'E' to '3', 'F' to '3',
+            'G' to '4', 'H' to '4', 'I' to '4',
+            'J' to '5', 'K' to '5', 'L' to '5',
+            'M' to '6', 'N' to '6', 'O' to '6',
+            'P' to '7', 'Q' to '7', 'R' to '7', 'S' to '7',
+            'T' to '8', 'U' to '8', 'V' to '8',
+            'W' to '9', 'X' to '9', 'Y' to '9', 'Z' to '9'
+        )
+        return name.uppercase().map { c -> map[c] ?: "" }.joinToString("")
+    }
+
+    private fun t9Search(text: String, token: Int) {
+        if (groups != null) { t9Match(text, token); return }
+        Thread {
+            val found = Contacts.contacts(this)
+            runOnUiThread {
+                if (isFinishing) return@runOnUiThread
+                if (searchToken != token) return@runOnUiThread
+                groups = found
+                t9Match(text, token)
+            }
+        }.start()
+    }
+
+    private fun t9Match(text: String, token: Int) {
+        if (searchToken != token || isFinishing) return
+        val match = groups?.asSequence()
+            ?.map { group -> group to t9Of(group.name) }
+            ?.firstOrNull { (_, nameT9) -> nameT9.startsWith(text) }
+        if (match != null) {
+            activeMatch = match.first
+            matched.text = match.first.name.uppercase()
+            showTypedAvatar(match.first.key)
+        } else {
+            activeMatch = null
+            matched.text = ""
+            avatar.visibility = View.GONE
+        }
+    }
+
+    private fun fallbackNumberLookup(text: String, token: Int) {
+        val ftoken = token
+        Thread {
+            val found = Contacts.nameFor(this, text)
+            runOnUiThread {
+                if (isFinishing) return@runOnUiThread
+                if (searchToken != ftoken) return@runOnUiThread
+                if (found != null) {
+                    matched.text = found.uppercase()
+                    showTypedAvatar(Store.key(text))
+                }
+            }
+        }.start()
     }
 
     // ---------------------------------------------------------------- lists
@@ -536,7 +610,7 @@ class DialerActivity : Activity() {
                 avatarFor(group.key, group.name, group.photoUri, dp(44f)),
                 group.name, numbersText, Glass.INK,
                 onClick = { openGroup(group) },
-                onLong = { dial(group.mainNumber) }
+                onLong = { dialTarget(group.mainNumber) }
             ))
         }
     }
@@ -588,7 +662,7 @@ class DialerActivity : Activity() {
             gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6f) })
         setOnClickListener { openGroup(group) }
-        setOnLongClickListener { dial(group.mainNumber); true }
+        setOnLongClickListener { dialTarget(group.mainNumber); true }
     }
 
     private fun row(
@@ -708,6 +782,7 @@ class DialerActivity : Activity() {
 
     private fun openGroup(group: ContactGroup) {
         closeSheet()
+        activeMatch = null
         val overlay = FrameLayout(this).apply {
             background = android.graphics.drawable.ColorDrawable(Color.argb(168, 3, 4, 6))
             isClickable = true
@@ -743,7 +818,7 @@ class DialerActivity : Activity() {
             gravity = Gravity.CENTER
         }
         actions.addView(pill(getString(R.string.call), Glass.GREEN, Color.rgb(4, 20, 13), filled = true) {
-            dial(group.mainNumber)
+            dialTarget(group.mainNumber)
         }, LinearLayout.LayoutParams(0, dp(48f), 1f).apply { setMargins(dp(4f), dp(14f), dp(4f), 0) })
         actions.addView(pill(getString(R.string.message), Color.WHITE, Glass.INK) {
             message(group.mainNumber)
@@ -912,8 +987,32 @@ class DialerActivity : Activity() {
         }
     }
 
-    private fun dial(raw: String) {
-        val target = raw.trim()
+    private fun dialTarget(target: String) {
+        val t = target.trim()
+        if (t.isEmpty()) {
+            Toast.makeText(this, R.string.need_number, Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (!enabled(Manifest.permission.CALL_PHONE)) {
+            pendingCall = t
+            requestPermissions(arrayOf(Manifest.permission.CALL_PHONE), REQ_CALL)
+            return
+        }
+        closeSheet()
+        val uri = Uri.fromParts("tel", t, null)
+        try {
+            if (isDefaultDialer()) {
+                val telecom = getSystemService(android.telecom.TelecomManager::class.java) ?: error("No telecom")
+                telecom.placeCall(uri, Bundle())
+            } else {
+                startActivity(Intent(Intent.ACTION_CALL, uri))
+            }
+        } catch (_: Exception) {
+            Toast.makeText(this, R.string.call_failed, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun dial(digits: String) = dialTarget(activeMatch?.mainNumber ?: digits.trim())
         if (target.isEmpty()) {
             Toast.makeText(this, R.string.need_number, Toast.LENGTH_SHORT).show()
             return
@@ -947,9 +1046,8 @@ class DialerActivity : Activity() {
                 pendingCall = null
                 if (allowed && next != null) dial(next)
             }
-            REQ_RECENTS -> if (allowed) { recents = null; fillRecents() }
-            REQ_CONTACTS -> if (allowed) { groups = null; refreshCurrentPage() }
             REQ_RECENTS -> if (allowed) { recents = null; fillRecents(); if (Store.missedNotifications(this)) MissedCalls.start(this) }
+            REQ_CONTACTS -> if (allowed) { groups = null; refreshCurrentPage() }
         }
     }
 

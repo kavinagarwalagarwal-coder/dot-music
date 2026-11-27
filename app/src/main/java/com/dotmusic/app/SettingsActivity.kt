@@ -23,6 +23,12 @@ class SettingsActivity : Activity() {
     private lateinit var column: LinearLayout
     private lateinit var phoneRow: LinearLayout
     private lateinit var dotsRow: LinearLayout
+    private lateinit var speedDialRow: LinearLayout
+    private lateinit var hapticsRow: LinearLayout
+    private lateinit var vibrationRow: LinearLayout
+    private lateinit var missedNotificationsRow: LinearLayout
+    private lateinit var badgeRow: LinearLayout
+    private lateinit var missedSoundRow: LinearLayout
 
     private fun dp(v: Float) = Glass.px(this, v)
 
@@ -88,6 +94,9 @@ class SettingsActivity : Activity() {
         list.addView(section(getString(R.string.section_phone)))
         phoneRow = setting(getString(R.string.default_phone), "") { requestDialerRole() }
         list.addView(phoneRow)
+        speedDialRow = setting(getString(R.string.speed_dial_desc), speedDialNote()) { pickSpeedDial() }
+        list.addView(speedDialRow)
+        list.addView(infoLine(getString(R.string.voicemail_longpress)))
 
         list.addView(section(getString(R.string.section_look)))
         dotsRow = setting(getString(R.string.white_dots), "") {
@@ -95,6 +104,18 @@ class SettingsActivity : Activity() {
             refreshRows()
         }
         list.addView(dotsRow)
+        hapticsRow = setting(getString(R.string.haptics), hapticsNote()) { toggleHaptics() }
+        list.addView(hapticsRow)
+        vibrationRow = setting(getString(R.string.vibration), vibrationNote()) { toggleVibration() }
+        list.addView(vibrationRow)
+
+        list.addView(section(getString(R.string.section_missed)))
+        missedNotificationsRow = setting(getString(R.string.missed_notifications), missedNotificationsNote()) { toggleMissedNotifications() }
+        list.addView(missedNotificationsRow)
+        badgeRow = setting(getString(R.string.badge), badgeNote()) { toggleBadge() }
+        list.addView(badgeRow)
+        missedSoundRow = setting(getString(R.string.missed_sound_desc), missedSoundNote()) { pickMissedSound() }
+        list.addView(missedSoundRow)
 
         list.addView(section(getString(R.string.section_contacts)))
         list.addView(setting(getString(R.string.custom_photos), getString(R.string.custom_photos_note)) {
@@ -154,10 +175,111 @@ class SettingsActivity : Activity() {
     private fun refreshRows() {
         noteOf(phoneRow).text = if (isDefaultDialer()) getString(R.string.is_default_phone) else getString(R.string.make_default)
         noteOf(dotsRow).text = if (Store.whiteDots(this)) getString(R.string.on) else getString(R.string.off)
+        noteOf(speedDialRow).text = speedDialNote()
+        noteOf(hapticsRow).text = hapticsNote()
+        noteOf(vibrationRow).text = vibrationNote()
+        noteOf(missedNotificationsRow).text = missedNotificationsNote()
+        noteOf(badgeRow).text = badgeNote()
+        noteOf(missedSoundRow).text = missedSoundNote()
     }
 
     private fun noteOf(row: LinearLayout): TextView =
         (row.getChildAt(0) as LinearLayout).getChildAt(1) as TextView
+
+    private fun infoLine(text: String): View = Glass.text(this, text, 11f, Glass.MUTED).apply {
+        setPadding(dp(16f), dp(10f), dp(16f), dp(10f))
+        setLineSpacing(dp(3f).toFloat(), 1f)
+    }
+
+    private fun speedDialNote(): String {
+        val sd = Store.speedDial(this)
+        return if (sd.isNullOrEmpty()) getString(R.string.speed_dial_none) else getString(R.string.speed_dial_desc) + ": " + sd
+    }
+
+    private fun hapticsNote(): String = if (Store.hapticsEnabled(this)) getString(R.string.setting_on) else getString(R.string.setting_off)
+
+    private fun vibrationNote(): String = if (Store.vibrationEnabled(this)) getString(R.string.setting_on) else getString(R.string.setting_off)
+
+    private fun missedNotificationsNote(): String = if (Store.missedNotifications(this)) getString(R.string.setting_on) else getString(R.string.setting_off)
+
+    private fun badgeNote(): String = if (Store.badgeEnabled(this)) getString(R.string.setting_on) else getString(R.string.setting_off)
+
+    private fun missedSoundNote(): String =
+        if (Store.missedSoundUri(this) != null) getString(R.string.missed_sound_set) else getString(R.string.speed_dial_none)
+
+    private fun toggleMissedNotifications() {
+        Store.setMissedNotifications(this, !Store.missedNotifications(this))
+        if (!Store.missedNotifications(this)) MissedCalls.clear(this)
+        refreshRows()
+    }
+
+    private fun toggleBadge() {
+        Store.setBadgeEnabled(this, !Store.badgeEnabled(this))
+        refreshRows()
+    }
+
+    private fun toggleHaptics() {
+        Store.setHapticsEnabled(this, !Store.hapticsEnabled(this))
+        refreshRows()
+    }
+
+    private fun toggleVibration() {
+        Store.setVibrationEnabled(this, !Store.vibrationEnabled(this))
+        refreshRows()
+    }
+
+    private fun cycleTheme() {
+        val next = if (Store.theme(this) == "dark") "system" else "dark"
+        Store.setTheme(this, next)
+        refreshRows()
+    }
+
+    private fun pickSpeedDial() {
+        numberPicker(getString(R.string.speed_dial_desc), Store.speedDial(this), { number ->
+            Store.setSpeedDial(this, number.ifEmpty { null })
+            refreshRows()
+            if (number.isNotEmpty()) Toast.makeText(this, getString(R.string.speed_dial_desc), Toast.LENGTH_SHORT).show()
+        })
+    }
+
+    private fun pickMissedSound() {
+        val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+            type = "audio/ringtone"
+            putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
+            putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, getString(R.string.choose_missed_sound))
+            putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(Store.missedSoundUri(this) ?: ""))
+        }
+        startActivityForResult(intent, REQ_SOUND)
+    }
+
+    private fun numberPicker(title: String, initial: String?, onPick: (String) -> Unit) {
+        val edit = EditText(this).apply {
+            hint = getString(R.string.enter_number)
+            setText(initial)
+            textSize = 18f
+            inputType = InputType.TYPE_CLASS_PHONE
+            imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_DONE
+            setTextColor(Glass.INK)
+        }
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setView(edit)
+            .setPositiveButton(R.string.save) { _, _ ->
+                val v = edit.text?.toString()?.trim().orEmpty()
+                onPick(v)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQ_SOUND && resultCode == RESULT_OK) {
+            val uri = data?.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI, Uri::class.java)
+            Store.setMissedSoundUri(this, uri?.toString())
+            refreshRows()
+        }
+    }
 
     // ---------------------------------------------------------------- updates
 
@@ -235,5 +357,6 @@ class SettingsActivity : Activity() {
 
     private companion object {
         const val REQ_ROLE = 51
+        const val REQ_SOUND = 52
     }
 }
