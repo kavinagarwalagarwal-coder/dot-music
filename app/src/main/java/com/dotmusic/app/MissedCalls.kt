@@ -4,7 +4,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -17,7 +16,8 @@ import android.provider.CallLog
  *
  * The count is kept in memory so a small badge in the keypad header can remind the user before they
  * open the app; opening the app cancels the notification but keeps the count until the user returns
- * the call. */
+ * the call. Notifications are only posted while the dialler is not on screen, so they never flash
+ * while the app is in use. */
 object MissedCalls {
     private const val CHANNEL = "dot_missed"
     private const val NOTIF_ID = 412
@@ -46,25 +46,10 @@ object MissedCalls {
     fun start(context: Context) {
         ensureChannel(context)
         refresh(context)
-        if (Build.VERSION.SDK_INT >= 34) {
-            context.registerReceiver(
-                missedReceiver,
-                IntentFilter(ACTION_CLEAR).apply { addCategory(context.packageName) },
-                Context.RECEIVER_NOT_EXPORTED
-            )
-            context.registerReceiver(
-                missedReceiver,
-                IntentFilter(ACTION_CALL_BACK).apply { addCategory(context.packageName) },
-                Context.RECEIVER_NOT_EXPORTED
-            )
-        } else {
-            context.registerReceiver(missedReceiver, IntentFilter(ACTION_CLEAR))
-            context.registerReceiver(missedReceiver, IntentFilter(ACTION_CALL_BACK))
-        }
     }
 
     fun stop(context: Context) {
-        try { context.unregisterReceiver(missedReceiver) } catch (_: Exception) {}
+        context.getSystemService(NotificationManager::class.java).cancel(NOTIF_ID)
     }
 
     /** Called when the user opens the app: the notification goes away, but the count stays so the
@@ -72,8 +57,6 @@ object MissedCalls {
     fun opened(context: Context) {
         context.getSystemService(NotificationManager::class.java).cancel(NOTIF_ID)
     }
-
-    @Volatile var appVisible = false
 
     fun clear(context: Context) {
         count = 0
@@ -146,8 +129,7 @@ object MissedCalls {
             context, 2, clearIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        val callBackIntent = Intent(context, MissedCallReceiver::class.java).setAction(ACTION_CALL_BACK)
-            .putExtra(EXTRA_NUMBER, number)
+        val callBackIntent = Intent(context, MissedCallReceiver::class.java).setAction(ACTION_CALL_BACK).putExtra(EXTRA_NUMBER, number)
         val callBackP = PendingIntent.getBroadcast(
             context, 3, callBackIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -173,20 +155,5 @@ object MissedCalls {
         context.getSystemService(NotificationManager::class.java).notify(NOTIF_ID, builder.build())
     }
 
-    private val missedReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            when (intent.action) {
-                ACTION_CLEAR -> clear(context)
-                ACTION_CALL_BACK -> {
-                    val number = intent.getStringExtra(EXTRA_NUMBER) ?: return
-                    try {
-                        val callIntent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$number"))
-                        callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        context.startActivity(callIntent)
-                    } catch (_: Exception) {}
-                    clear(context)
-                }
-            }
-        }
-    }
+    @Volatile var appVisible = false
 }
