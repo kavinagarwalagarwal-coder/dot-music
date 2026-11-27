@@ -21,7 +21,7 @@ import android.provider.CallLog
 object MissedCalls {
     private const val CHANNEL = "dot_missed"
     private const val NOTIF_ID = 412
-    private const val ACTION_CLEAR = "com.dotmusic.app.CLEAR_MISSED"
+    const val ACTION_CLEAR = "com.dotmusic.app.CLEAR_MISSED"
     const val ACTION_CALL_BACK = "com.dotmusic.app.CALL_BACK"
     const val EXTRA_NUMBER = "number"
 
