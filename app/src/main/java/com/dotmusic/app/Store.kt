@@ -3,10 +3,6 @@ package com.dotmusic.app
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
 import java.io.File
 
 /** Everything the phone remembers: the tour, the dot style, stars, and the contact photos. */
@@ -126,25 +122,4 @@ object ContactPhotos {
     /** A dot disc drawn from a bitmap that isn't stored (an address-book photo, say). */
     fun dotsOf(source: Bitmap, sizePx: Int, mono: Boolean = false): Bitmap =
         DotArt.cover(source, n = 19, size = sizePx, mono = mono, disc = true)
-
-    /** A dot disc with a letter in it: what a contact without a photo looks like. */
-    fun initial(c: Context, letter: String, sizePx: Int, tint: Int = 0xFF9AA2AC.toInt()): Bitmap {
-        val out = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(out)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-        paint.color = Color.argb(34, Color.red(tint), Color.green(tint), Color.blue(tint))
-        canvas.drawCircle(sizePx / 2f, sizePx / 2f, sizePx * 0.46f, paint)
-        paint.color = Color.argb(210, Color.red(tint), Color.green(tint), Color.blue(tint))
-        canvas.drawCircle(sizePx / 2f, sizePx / 2f, 2f, paint)
-        return out
-    }
-
-    /** Rounded, softly lit photo for the contact card. */
-    fun preview(source: Bitmap, sizePx: Int): Bitmap {
-        val out = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(out)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-        canvas.drawBitmap(source, Rect(0, 0, source.width, source.height), Rect(0, 0, sizePx, sizePx), paint)
-        return out
-    }
 }

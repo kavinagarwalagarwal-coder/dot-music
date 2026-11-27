@@ -175,7 +175,7 @@ class SettingsActivity : Activity() {
                     AlertDialog.Builder(this)
                         .setTitle(getString(R.string.update_available, latest.versionName))
                         .setMessage(R.string.update_note)
-                        .setPositiveButton(R.string.update_download) { _, _ -> download(latest) }
+                        .setPositiveButton(R.string.update_download) { _, _ -> download() }
                         .setNegativeButton(android.R.string.cancel, null)
                         .show()
                 }
@@ -183,7 +183,7 @@ class SettingsActivity : Activity() {
         }
     }
 
-    private fun download(release: Updates.Release) {
+    private fun download() {
         Toast.makeText(this, R.string.update_downloading, Toast.LENGTH_SHORT).show()
         Updates.background {
             val apk = runCatching { Updates.download(this) }.getOrNull()

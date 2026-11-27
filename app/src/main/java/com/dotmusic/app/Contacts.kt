@@ -10,9 +10,7 @@ data class Person(
     val name: String,
     val number: String,
     val photoUri: String?
-) {
-    val initial: String get() = name.trim().firstOrNull()?.uppercase() ?: "#"
-}
+)
 
 /** Reading the address book, plus the name behind a number. Both block, so call them off the UI. */
 object Contacts {

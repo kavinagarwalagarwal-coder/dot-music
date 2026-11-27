@@ -11,7 +11,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -61,14 +60,12 @@ class DialerActivity : Activity() {
     private var nameToken = 0
     private var pendingCall: String? = null
     private var sheet: View? = null
-    private var sheetPerson: Person? = null
     private var pickingFor: Person? = null
     private var bottomInset = 0
     private val systemPhotos = android.util.LruCache<String, Bitmap>(48)
 
     private val density get() = resources.displayMetrics.density
     private fun dp(v: Float) = Glass.px(this, v)
-    private fun soft() = Glass.panel(this, 26f)
     private fun enabled(permission: String) = checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -752,7 +749,6 @@ class DialerActivity : Activity() {
         card.translationY = dp(36f).toFloat()
         card.animate().alpha(1f).translationY(0f).setDuration(220).start()
         sheet = overlay
-        sheetPerson = person
 
         // The address-book photo is turned into dots off the main thread, then fades in.
         val photoUri = person.photoUri
@@ -798,7 +794,6 @@ class DialerActivity : Activity() {
     private fun closeSheet() {
         val open = sheet ?: return
         sheet = null
-        sheetPerson = null
         open.animate().alpha(0f).setDuration(160).withEndAction { root.removeView(open) }.start()
     }
 

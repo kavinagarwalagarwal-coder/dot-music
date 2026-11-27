@@ -71,14 +71,6 @@ object Glass {
         return RippleDrawable(ColorStateList.valueOf(withAlpha(Color.WHITE, 60)), shape, null)
     }
 
-    fun circle(c: Context, color: Int = Color.TRANSPARENT, radius: Float = 999f): GradientDrawable =
-        GradientDrawable().apply {
-            shape = GradientDrawable.OVAL
-            cornerRadius = dp(c, radius)
-            setColor(color)
-            setStroke(px(c, 1f).coerceAtLeast(1), withAlpha(Color.WHITE, 46))
-        }
-
     fun text(
         c: Context,
         content: CharSequence,

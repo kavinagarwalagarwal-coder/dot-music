@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -40,8 +39,6 @@ class DotCallActivity : Activity() {
     private lateinit var speaker: TextView
     private lateinit var hold: TextView
     private lateinit var end: TextView
-    private lateinit var answer: TextView
-    private lateinit var decline: TextView
     private lateinit var keypad: LinearLayout
     private var padOpen = false
 
@@ -118,16 +115,16 @@ class DotCallActivity : Activity() {
         }
 
         activeRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER }
-        mute = circle(getString(R.string.mute), 0) {
+        mute = circle(getString(R.string.mute)) {
             DotInCallService.service?.setMuted(!DotInCallService.muted)
         }
-        dialpad = circle(getString(R.string.keypad), 1) { showKeypad(!padOpen) }
-        speaker = circle(getString(R.string.speaker), 2) {
+        dialpad = circle(getString(R.string.keypad)) { showKeypad(!padOpen) }
+        speaker = circle(getString(R.string.speaker)) {
             DotInCallService.service?.setAudioRoute(
                 if (DotInCallService.speaker) CallAudioState.ROUTE_EARPIECE else CallAudioState.ROUTE_SPEAKER
             )
         }
-        hold = circle(getString(R.string.hold), 3) {
+        hold = circle(getString(R.string.hold)) {
             val call = DotInCallService.currentCall ?: return@circle
             if (call.state == Call.STATE_HOLDING) call.unhold() else call.hold()
         }
@@ -153,10 +150,10 @@ class DotCallActivity : Activity() {
         panel.addView(end, LinearLayout.LayoutParams(-1, dp(50f)).apply { topMargin = dp(10f) })
 
         ringingRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER }
-        decline = pill(getString(R.string.decline), Glass.RED, Color.WHITE) {
+        val decline = pill(getString(R.string.decline), Glass.RED, Color.WHITE) {
             DotInCallService.currentCall?.disconnect()
         }
-        answer = pill(getString(R.string.answer), Glass.GREEN, Color.rgb(4, 20, 13), filled = true) {
+        val answer = pill(getString(R.string.answer), Glass.GREEN, Color.rgb(4, 20, 13), filled = true) {
             DotInCallService.currentCall?.answer(VideoProfile.STATE_AUDIO_ONLY)
         }
         ringingRow.addView(decline, LinearLayout.LayoutParams(0, dp(54f), 1f).apply { setMargins(dp(5f), 0, dp(5f), 0) })
@@ -210,7 +207,7 @@ class DotCallActivity : Activity() {
         }
 
     /** A round glass button with its label underneath, the player's control style. */
-    private fun circle(label: String, index: Int, action: () -> Unit): TextView = TextView(this).apply {
+    private fun circle(label: String, action: () -> Unit): TextView = TextView(this).apply {
         text = label.uppercase()
         typeface = Glass.doto(this@DotCallActivity)
         textSize = 9f
