@@ -1,18 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
@@ -22,30 +17,24 @@
         android:label="@string/app_name"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
 
+        <!-- The tour runs once. After that it hands straight over to the keypad. -->
         <activity
-            android:name=".DotPlayerActivity"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen" />
-
-        <activity
-            android:name=".MainActivity"
-            android:exported="false"
-            android:label="@string/settings_title"
-            android:theme="@android:style/Theme.DeviceDefault.NoActionBar" />
-
-        <activity
-            android:name=".DialerActivity"
+            android:name=".OnboardingActivity"
             android:exported="true"
-            android:label="@string/dialer_name"
-            android:launchMode="singleTop"
-            android:windowSoftInputMode="adjustNothing"
+            android:noHistory="true"
             android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen">
-            <!-- Dot is a phone app: the icon opens the keypad, and the player is one chip away. -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".DialerActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen">
             <intent-filter>
                 <action android:name="android.intent.action.DIAL" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -56,6 +45,12 @@
                 <data android:scheme="tel" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:label="@string/settings_title"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen" />
 
         <activity
             android:name=".DotCallActivity"
@@ -75,104 +70,9 @@
             </intent-filter>
         </service>
 
-        <service
-            android:name=".MusicListener"
-            android:exported="true"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
-            <intent-filter>
-                <action android:name="android.service.notification.NotificationListenerService" />
-            </intent-filter>
-        </service>
-
-        <service
-            android:name=".PlaybackService"
-            android:exported="true"
-            android:foregroundServiceType="mediaPlayback">
-            <intent-filter>
-                <action android:name="androidx.media3.session.MediaSessionService" />
-            </intent-filter>
-        </service>
-
-        <service
-            android:name=".DotWallpaper"
-            android:exported="true"
-            android:permission="android.permission.BIND_WALLPAPER">
-            <intent-filter>
-                <action android:name="android.service.wallpaper.WallpaperService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.service.wallpaper"
-                android:resource="@xml/wallpaper" />
-        </service>
-
-        <service
-            android:name=".DotTile"
-            android:exported="true"
-            android:icon="@mipmap/ic_launcher"
-            android:label="@string/tile_label"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
-            <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE" />
-            </intent-filter>
-        </service>
-
         <receiver
-            android:name=".WidgetActionReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="TOGGLE" />
-                <action android:name="NEXT" />
-                <action android:name="PREVIOUS" />
-            </intent-filter>
-        </receiver>
-
-        <receiver
-            android:name=".SmallDotWidget"
-            android:exported="true"
-            android:label="@string/widget_small_name">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget_small" />
-        </receiver>
-
-        <receiver
-            android:name=".MediumDotWidget"
-            android:exported="true"
-            android:label="@string/widget_medium_name">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget_medium" />
-        </receiver>
-
-        <receiver
-            android:name=".WideDotWidget"
-            android:exported="true"
-            android:label="@string/widget_wide_name">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget_wide" />
-        </receiver>
-
-        <receiver
-            android:name=".StageDotWidget"
-            android:exported="true"
-            android:label="@string/widget_stage_name">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget_stage" />
-        </receiver>
+            android:name=".CallActionReceiver"
+            android:exported="false" />
 
         <receiver
             android:name=".InstallResultReceiver"

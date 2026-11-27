@@ -1,94 +1,47 @@
-# Dot Music
+# Dot Phone
 
-**A dot-matrix phone app: a Nothing-style dialer whose call screen is the full-screen dot player.**
+**A dialer made of dots: a Nothing-style phone app, where every contact's photo becomes a spinning record.**
 
-Open the app and you're at the keypad: monochrome, pill-tabbed, inspired by Nothing OS, with **Keypad**, **Recents** and **Contacts** a tap apart. Names appear under the number as you type, contacts are searchable, and call history is one tap away. Choose **Make Dot your phone app** and Dot places carrier calls itself, with its own incoming and in-call screen. Android requires your explicit approval before an app can become the default dialer; until you grant that role, calls go to your existing phone app.
-
-The **Player** chip in the corner opens Dot's other half: the full-screen dot player, where the album cover becomes a spinning record made of hundreds of dots. Another app does the playing: YouTube Music by default, or any player you choose (Dot Player, Spotify, JioSaavn…). Dot is the screen, the controls and the picks.
-
-## The call screen
-
-On a call, the phone becomes the player. The caller's photo (or Dot's own dot cover) spins as a record of hundreds of springy dots, ripples roll out on a steady pulse, the ring of dots around it works as an equaliser, and the caller's name rains in, column by column, in the dot font. The row of dots underneath lights one more dot for every minute of the call, and the pill controls at the bottom answer, decline, mute, switch to speaker or end the call. The player's play, pause, skip and seek are off here, so the record can't touch your music.
+Open the app and you're at the keypad: near-black glass, hairline edges, soft mint and blue auras, and the Doto dot type for labels. Four pill tabs — **Keypad**, **Recents**, **People**, **Stars** — keep everything one tap apart. Choose **Make Dot your phone app** and Dot places carrier calls itself, which is what gives it its own call screen. Until then, calls go to whichever phone app is the default.
 
 [**⬇ Download the latest APK**](../../releases/tag/latest) · Android 8.0+
 
-## Online music, inside Dot
+## The welcome tour
 
-Settings → **Online music** turns on Dot's own player. Search, results, the queue and playback all happen in Dot:
+The first launch is a short, compulsory tour: what the app is, why it wants to be the phone app, the two permissions it uses (contacts and call history), and whether the dots should be white. There is no skip; the tour is the only way into the dialer. Settings → **Welcome tour** runs it again.
 
-- **YouTube** (nearly every song): add your own free YouTube Data API key. Songs play in YouTube's official embedded player, in a small video card on the player screen. By YouTube's rules it plays only while Dot is on screen and may show ads.
-- **Audius** (1M+ independent artists): on by default, no sign-up, keeps playing with the screen off, with lock-screen controls.
-- **Jamendo** (Creative Commons music): add a free client ID; plays in the background too.
+## A photo per contact
 
-When the queue runs out, the recommendation engine fills it: songs you've played before replay straight from where they came from (no search needed), and **Discover** ranks new songs from the Audius and Jamendo charts by the artists and genres you like.
+Open a contact's card and choose **Photo**: pick any image and Dot stores it on the phone, centre-cropped and downscaled. From then on that photo is the person's picture in lists, on their card, and — spinning — on the call screen. **Remove photo** goes back to the address-book photo, or to their initial in dot type.
 
-## Choosing the player app
+Every picture is drawn the way the app has always drawn things: the image is sampled into a halftone grid where each dot's size follows brightness, and each dot is its own little spring. The record turns while the line is live, ripples roll out of the centre on a steady pulse, and the ring of dots around it works as an equaliser. Then the person's name rains in, column by column, in the dot font.
 
-Settings → **Player app** lists the music players on your phone. Dot follows and controls the one you pick through Android's standard media controls, and sends its picks there. **Check what the player app supports** shows exactly what that app allows (song info, cover, seek, queue, and whether it can start songs while you stay in Dot), with a **Send a test song** button. Apps that can't take songs in the background are opened instead; apps that take no requests at all can still be shown, controlled and learned from.
+## The call screen
 
-## Playing through YouTube Music
+- **Answer or decline** with the two glass pills on an incoming call.
+- **Mute**, **keypad**, **speaker** and **hold** are round glass buttons that light up white when they're on; **end call** sits underneath in red.
+- **Hold** puts the line on hold and settles the record; the status chip turns amber.
+- **Keypad** slides up an in-call dial pad that sends real DTMF tones, for phone menus and extensions.
+- The timer runs under the name, and the row of dots beneath it lights one more dot for every minute of the call.
 
-- **For you** (top right) opens search and your recommendation shelves. Type anything and press search, or tap a pick: it starts on YouTube Music, which keeps a radio of similar songs going after it.
-- Dot hands songs straight to YouTube Music's media session, the way Assistant and Android Auto do, so you stay in the player. If YouTube Music isn't running yet, it opens and starts playing.
-- The bar at the bottom shows **Dot's next pick**; tap it to play it now. Turn on **Dot picks the next song** in settings and Next (or a left flick of the record) plays Dot's pick instead of YouTube Music's queue.
-- YouTube Music's own queue shows up under For you too, when it shares it.
+## Lists that stay quick
 
-## Recommendations
+- **Recents** shows the call log with names, type and relative time; tap to call, long-press to drop the number into the keypad.
+- **People** is a searchable address book — by name or by digits — with each row drawn as a dot avatar. Tap for the contact card, long-press to call.
+- **Stars** is a grid of the people you keep close; star anyone from their card.
 
-Dot learns only from what you play, and keeps it in the app's private storage on your phone.
+The contact card also has **Message** (opens your SMS app), **Copy** the number, and **Star/Unstar**.
 
-- **How a song ended.** Played through counts as a like, half-way as a shrug, skipped early as a dislike. Songs you skip again and again stop coming up.
-- **Recency.** Every signal fades over about a month, so your taste can move on.
-- **Flow.** Which song you happily played after which (song to song, and artist to artist), followed two steps out from what's playing now. This drives **Up next**.
-- **Time of day.** Songs you lean on in the morning versus late at night: **Your evening**, **Your late night**…
-- **Rest.** Songs you just heard sit out for a while.
-- **Exploring.** Each pick is a Thompson sample of how much you like the song, so ones Dot is unsure about still get a turn. A diversity pass spreads artists out. **Explore** suggests artists that follow your favourites, and radios seeded from songs you love, where YouTube Music brings in music you haven't heard.
+## Updates
 
-Shelves: **Up next**, **Your ‹time of day›**, **On repeat**, **Rediscover** (old favourites you drifted from) and **Explore**. You can switch learning off or forget everything in settings.
-
-## Widgets
-
-| Size | What's on it |
-| --- | --- |
-| **2×2 record** | The cover as a dot record, a comet of dots orbiting it, rings of dots rippling out of the play button. |
-| **4×2 player** | Dot record with its comet, the title set in dots, a live dot equaliser, a dot progress bar, the clock, previous / play / next. |
-| **4×1 strip** | Live dot equaliser, title in dots, play and next. |
-| **4×4 stage** | The player screen as a widget: the dot record inside its equaliser ring, drawn by the player's own code, with the comet orbiting and ripples running through it, plus title, progress and controls. |
-
-The equaliser, the orbiting comet and the ripples are animated vector drawables that your launcher plays by itself, so they stay smooth and cost almost no battery. They run only while music plays. The progress bar steps forward every few seconds, and only while the screen is on.
-
-## Live wallpaper
-
-The full player, alive on your home screen: the record spins and ripples with the music, the ring equaliser moves, and the dots move away from your finger as you swipe between pages. Tap the record to play or pause. It only draws while visible, and drops to about 20 fps when the music is paused. Set it from the app with **Set as live wallpaper**.
-
-It sits on top of your own wallpaper photo (Android doesn't let apps read your current wallpaper, so you pick the photo once in the app). The dots can show always or **only while music plays**, fading in when a song starts and away when it stops, and a **Quick Settings tile** switches them on and off from the notification shade. With the dots hidden it's just your photo and draws nothing more.
-
-## The full-screen player
-
-It's what opens when you start the app, or tap a widget's record or title.
-
-- **A record of ~700 springy dots** that slowly spins while the song plays and settles when you pause.
-- **Ripples on the beat** roll out through the record, and a **ring of dots** around it works as a circular equaliser.
-- **React to the real beat (optional).** The player follows the actual music using Android's audio visualizer. Android files this under the microphone permission, but it only measures loudness per frequency and never records anything. When it's off, a steady pulse plays instead.
-- **Play with it.** Drag your finger through the dots to push them aside. Tap the record to pause, or flick it left or right to skip: the record bursts apart and the dots reassemble into the next cover.
-- **Title in dots** that rains in column by column and scrolls when it's long. Drag the dot progress bar to seek.
-- Colour dots from the cover, or **white dots** in Nothing style. Respects Android's "remove animations" setting.
-
-## Setup
-
-1. Install YouTube Music and sign in.
-2. Install the APK from [Releases](../../releases/tag/latest) and open Dot Music.
-3. Tap **Connect YouTube Music** at the bottom and allow notification access. This is how Android lets an app see and control what's playing.
-4. Open **For you** and play something. Widgets and the live wallpaper are in settings (**•••**).
-
-The widgets, the wallpaper and the player also follow other music apps (Spotify, Apple Music and others) unless you turn on **Only follow YouTube Music**.
+Settings → **Check for updates** downloads the newest build from this repository's GitHub release and hands it to Android's installer, so it replaces the app in place. Your contacts, custom photos and stars are untouched.
 
 ## Privacy
 
-Dot only goes online for the sources you turn on (YouTube with your own key, Audius, Jamendo). No accounts, no analytics. For other player apps, the song, cover and play state are read from their media session. Your listening history (song, artist, how long you listened, the hour) is kept in the app's private storage to make recommendations, and never leaves the phone. Settings has **Forget my listening history**.
+Everything stays on the phone. Contacts and call history are read only to show names, photos and recents, and custom photos live in the app's private storage. No account, no analytics, no network use except the update check. Settings → **Remove** deletes the photos you picked inside Dot.
 
 ## Build
 
-GitHub Actions builds the app, runs unit tests and emulator tests on every push, and publishes the APK as the **latest** release. Locally: open in Android Studio, or `gradle :app:assembleDebug` with Gradle 8.13 and JDK 17.
+GitHub Actions builds the app, runs unit tests and instrumented tests on every push, and publishes the APK as the **latest** release. Locally: open in Android Studio, or `gradle :app:assembleDebug` with Gradle 8.13 and JDK 17.
 
 The dot font is [Doto](https://fonts.google.com/specimen/Doto) (SIL Open Font License, included in `app/src/main/assets/fonts`).
