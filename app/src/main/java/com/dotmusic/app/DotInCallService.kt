@@ -8,6 +8,7 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
 import android.telecom.Call
+import android.telecom.CallAudioState
 
 /** Telecom's bridge for cellular calls when Dot is chosen as the device's default dialer. */
 class DotInCallService : InCallService() {
@@ -39,9 +40,19 @@ class DotInCallService : InCallService() {
         if (calls.isEmpty()) {
             (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).cancel(NOTIFICATION_ID)
             service = null
+            muted = false
+            speaker = false
         } else currentCall?.let(::showCallNotification)
         broadcastCallChanged()
         super.onCallRemoved(call)
+    }
+
+    /** Telecom's own audio state, so the call screen shows mute and speaker truthfully. */
+    override fun onCallAudioStateChanged(audioState: CallAudioState) {
+        super.onCallAudioStateChanged(audioState)
+        muted = audioState.isMuted
+        speaker = audioState.route == CallAudioState.ROUTE_SPEAKER
+        broadcastCallChanged()
     }
 
     private fun ensureChannel() {
@@ -85,6 +96,10 @@ class DotInCallService : InCallService() {
         @Volatile var currentCall: Call? = null
             internal set
         @Volatile var service: DotInCallService? = null
+            internal set
+        @Volatile var muted = false
+            internal set
+        @Volatile var speaker = false
             internal set
     }
 }

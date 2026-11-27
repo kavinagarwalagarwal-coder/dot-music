@@ -50,6 +50,10 @@ class DotStage(private val context: Context, unit: Float? = null) {
     /** Host hooks: redraw, and a haptic tick (no-op on the wallpaper). */
     var onInvalidate: () -> Unit = {}
     var haptic: (Int) -> Unit = {}
+    /** A line under the title for a host without a song (the call screen shows its timer there). */
+    var subtitle: String? = null
+    /** The progress row's fill for a host without a song (the call screen lights a dot per minute). */
+    var progressOverride: Float? = null
     private val resources get() = context.resources
     private var width = 0
     private var height = 0
@@ -509,10 +513,11 @@ class DotStage(private val context: Context, unit: Float? = null) {
 
     private fun drawInfo(canvas: Canvas) {
         val tr = track
-        canvas.drawText((tr?.artist ?: context.getString(R.string.player_idle_hint)).uppercase(), width / 2f, artistY, label)
+        val line = subtitle ?: tr?.artist ?: context.getString(R.string.player_idle_hint)
+        canvas.drawText(line.uppercase(), width / 2f, artistY, label)
         // Progress: a row of dots, the head pulsing with the beat.
         val count = 34
-        val fraction = if (seeking) seekFraction else tr?.progress() ?: 0f
+        val fraction = if (seeking) seekFraction else (progressOverride ?: tr?.progress() ?: 0f)
         val head = (fraction * (count - 1)).roundToInt()
         val stepX = (barRight - barLeft) / (count - 1)
         for (i in 0 until count) {

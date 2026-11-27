@@ -1,10 +1,14 @@
 # Dot Music
 
-**A full-screen dot player for YouTube Music, with recommendations that learn on your phone.**
+**A dot-matrix phone app: a Nothing-style dialer whose call screen is the full-screen dot player.**
 
-Open the app and you're in the player: the album cover becomes a spinning record made of hundreds of dots, in a dot-matrix style inspired by Nothing. Another app does the playing: YouTube Music by default, or any player you choose (Dot Player, Spotify, JioSaavn…). Dot is the screen, the controls and the picks.
+Open the app and you're at the keypad: monochrome, pill-tabbed, inspired by Nothing OS, with **Keypad**, **Recents** and **Contacts** a tap apart. Names appear under the number as you type, contacts are searchable, and call history is one tap away. Choose **Make Dot your phone app** and Dot places carrier calls itself, with its own incoming and in-call screen. Android requires your explicit approval before an app can become the default dialer; until you grant that role, calls go to your existing phone app.
 
-Dot also includes a native keypad and contact picker. Choose **Make Dot your default phone app** to place carrier calls directly from Dot and use its own incoming and active call screen, with the spinning dot-matrix animation. Android requires your explicit approval before an app can become the default dialer; calls stay with Android's existing dialer until you grant that role.
+The **Player** chip in the corner opens Dot's other half: the full-screen dot player, where the album cover becomes a spinning record made of hundreds of dots. Another app does the playing: YouTube Music by default, or any player you choose (Dot Player, Spotify, JioSaavn…). Dot is the screen, the controls and the picks.
+
+## The call screen
+
+On a call, the phone becomes the player. The caller's photo (or Dot's own dot cover) spins as a record of hundreds of springy dots, ripples roll out on a steady pulse, the ring of dots around it works as an equaliser, and the caller's name rains in, column by column, in the dot font. The row of dots underneath lights one more dot for every minute of the call, and the pill controls at the bottom answer, decline, mute, switch to speaker or end the call. The player's play, pause, skip and seek are off here, so the record can't touch your music.
 
 [**⬇ Download the latest APK**](../../releases/tag/latest) · Android 8.0+
 
