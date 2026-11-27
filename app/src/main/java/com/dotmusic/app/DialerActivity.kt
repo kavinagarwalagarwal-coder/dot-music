@@ -1,16 +1,21 @@
 package com.dotmusic.app
 
+import android.Manifest
 import android.app.Activity
-import android.content.ActivityNotFoundException
+import android.app.AlertDialog
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import android.os.Bundle
+import android.app.role.RoleManager
+import android.telecom.TelecomManager
+import android.provider.ContactsContract
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
-import android.os.Bundle
-import android.provider.ContactsContract
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
@@ -18,10 +23,24 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 
-/** A lightweight dialer that hands calls off to Android's system dialer for confirmation. */
+/** Dot's native keypad and contact picker for direct Telecom calls. */
 class DialerActivity : Activity() {
     private lateinit var numberView: TextView
+    private lateinit var defaultDialerButton: TextView
     private val number = StringBuilder()
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        intent.data?.schemeSpecificPart?.let { number.clear(); number.append(it); refreshNumber() }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::defaultDialerButton.isInitialized) {
+            defaultDialerButton.visibility = if (isDefaultDialer()) View.GONE else View.VISIBLE
+        }
+    }
     private val density get() = resources.displayMetrics.density
     private fun dp(value: Float) = (value * density).toInt()
 
@@ -33,6 +52,7 @@ class DialerActivity : Activity() {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
             View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         setContentView(buildUi())
+        intent?.data?.schemeSpecificPart?.let { number.append(it); refreshNumber() }
     }
 
     private fun buildUi(): View {
@@ -118,19 +138,27 @@ class DialerActivity : Activity() {
         }
         content.addView(keypad, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(3f) })
 
+        defaultDialerButton = TextView(this).apply {
+            text = "MAKE DOT YOUR DEFAULT PHONE APP"; textSize = 11f; letterSpacing = 0.08f
+            gravity = Gravity.CENTER; setTextColor(Color.rgb(102, 232, 161))
+            isFocusable = true; isClickable = true
+            setOnClickListener { requestDialerRole() }
+        }
+        content.addView(defaultDialerButton, LinearLayout.LayoutParams(-1, dp(38f)).apply { topMargin = dp(5f) })
         val call = TextView(this).apply {
-            text = "☎     CALL"; textSize = 17f; letterSpacing = 0.12f
+            text = "CALL"; textSize = 17f; letterSpacing = 0.12f
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
             gravity = Gravity.CENTER; setTextColor(Color.rgb(4, 17, 12))
             background = pill(Color.rgb(102, 232, 161), 32f)
             contentDescription = "Call this number"
-            setOnClickListener { startDialIntent() }
+            isFocusable = true; isClickable = true
+            setOnClickListener { placeCall() }
         }
-        content.addView(call, LinearLayout.LayoutParams(-1, dp(58f)).apply { topMargin = dp(12f) })
+        content.addView(call, LinearLayout.LayoutParams(-1, dp(58f)).apply { topMargin = dp(5f) })
         content.addView(TextView(this).apply {
-            text = "CALLS ARE PLACED WITH YOUR PHONE APP"; textSize = 9f; letterSpacing = 0.12f
+            text = "CALLS AND THE IN-CALL SCREEN STAY IN DOT"; textSize = 9f; letterSpacing = 0.1f
             gravity = Gravity.CENTER; setTextColor(Color.rgb(94, 101, 109))
-        }, LinearLayout.LayoutParams(-1, dp(24f)).apply { topMargin = dp(4f) })
+        }, LinearLayout.LayoutParams(-1, dp(20f)).apply { topMargin = dp(2f) })
         return root
     }
 
@@ -167,25 +195,99 @@ class DialerActivity : Activity() {
         numberView.setTextColor(if (number.isEmpty()) Color.rgb(106, 113, 121) else Color.WHITE)
     }
 
-    private fun startDialIntent() {
+    private fun isDefaultDialer(): Boolean =
+        getSystemService(TelecomManager::class.java)?.defaultDialerPackage == packageName
+
+    private fun requestDialerRole() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val roles = getSystemService(RoleManager::class.java)
+                if (roles?.isRoleAvailable(RoleManager.ROLE_DIALER) == true) {
+                    startActivityForResult(roles.createRequestRoleIntent(RoleManager.ROLE_DIALER), ROLE_REQUEST)
+                }
+            } else {
+                startActivityForResult(
+                    Intent(TelecomManager.ACTION_CHANGE_DEFAULT_DIALER)
+                        .putExtra(TelecomManager.EXTRA_CHANGE_DEFAULT_DIALER_PACKAGE_NAME, packageName),
+                    ROLE_REQUEST
+                )
+            }
+        } catch (_: Exception) {
+            Toast.makeText(this, "Could not open the default phone app setting", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun placeCall() {
         if (number.isEmpty()) {
             Toast.makeText(this, "Enter a number first", Toast.LENGTH_SHORT).show()
             return
         }
-        val intent = Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", number.toString(), null))
+        if (!isDefaultDialer()) {
+            Toast.makeText(this, "Set Dot as your default phone app to call from Dot", Toast.LENGTH_LONG).show()
+            requestDialerRole()
+            return
+        }
+        if (checkSelfPermission(Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.CALL_PHONE), CALL_PERMISSION_REQUEST)
+            return
+        }
         try {
-            startActivity(intent)
-        } catch (_: ActivityNotFoundException) {
-            Toast.makeText(this, "No phone app is available", Toast.LENGTH_SHORT).show()
+            getSystemService(TelecomManager::class.java)
+                ?.placeCall(Uri.fromParts("tel", number.toString(), null), Bundle())
+                ?: error("Telecom service unavailable")
+        } catch (_: SecurityException) {
+            Toast.makeText(this, "Allow phone calls to place calls from Dot", Toast.LENGTH_LONG).show()
+        } catch (_: Exception) {
+            Toast.makeText(this, "Could not place this call", Toast.LENGTH_LONG).show()
         }
     }
 
     private fun openContacts() {
-        try {
-            startActivity(Intent(Intent.ACTION_VIEW, ContactsContract.Contacts.CONTENT_URI))
-        } catch (_: ActivityNotFoundException) {
-            Toast.makeText(this, "No contacts app is available", Toast.LENGTH_SHORT).show()
+        if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.READ_CONTACTS), CONTACTS_PERMISSION_REQUEST)
+            return
         }
+        val names = mutableListOf<String>()
+        val numbers = mutableListOf<String>()
+        val projection = arrayOf(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER)
+        contentResolver.query(
+            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+            projection, null, null, "${ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME} COLLATE NOCASE ASC"
+        )?.use { cursor ->
+            val nameColumn = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+            val numberColumn = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER)
+            while (cursor.moveToNext() && names.size < 200) {
+                names += cursor.getString(nameColumn).orEmpty()
+                numbers += cursor.getString(numberColumn).orEmpty()
+            }
+        }
+        if (names.isEmpty()) {
+            Toast.makeText(this, "No contacts with phone numbers found", Toast.LENGTH_SHORT).show()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Choose a contact")
+            .setItems(names.indices.map { "${names[it]}  ·  ${numbers[it]}" }.toTypedArray()) { _, index ->
+                number.clear(); number.append(numbers[index]); refreshNumber()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    @Deprecated("Platform permission result callback is sufficient here.")
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (grantResults.firstOrNull() != PackageManager.PERMISSION_GRANTED) return
+        when (requestCode) {
+            CALL_PERMISSION_REQUEST -> placeCall()
+            CONTACTS_PERMISSION_REQUEST -> openContacts()
+        }
+    }
+
+    private companion object {
+        const val ROLE_REQUEST = 21
+        const val CALL_PERMISSION_REQUEST = 22
+        const val CONTACTS_PERMISSION_REQUEST = 23
     }
 
     /** Dotted orbital artwork borrows the player's dot-record language without media controls. */
