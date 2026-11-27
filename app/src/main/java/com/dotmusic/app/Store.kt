@@ -30,7 +30,7 @@ object Store {
      * The key a phone number is remembered by: digits only, last ten, so +44 7700 900123 and
      * 07700900123 are the same person. Falls back to the raw text for short codes.
      */
-    fun key(number: String): String {
+        fun key(number: String): String {
         val digits = number.filter { it.isDigit() }
         return when {
             digits.length >= 10 -> digits.takeLast(10)
@@ -38,6 +38,24 @@ object Store {
             else -> number.trim()
         }
     }
+
+    fun missedNotifications(c: Context) = prefs(c).getBoolean("missed", true)
+    fun setMissedNotifications(c: Context, on: Boolean) = prefs(c).edit().putBoolean("missed", on).apply()
+    fun badgeEnabled(c: Context) = prefs(c).getBoolean("badge", true)
+    fun setBadgeEnabled(c: Context, on: Boolean) = prefs(c).edit().putBoolean("badge", on).apply()
+    fun missedSoundEnabled(c: Context) = prefs(c).getBoolean("missed_sound", true)
+    fun setMissedSoundEnabled(c: Context, on: Boolean) = prefs(c).edit().putBoolean("missed_sound", on).apply()
+    fun missedSoundUri(c: Context): String? = prefs(c).getString("missed_sound_uri", null)
+    fun setMissedSoundUri(c: Context, uri: String?) = prefs(c).edit().putString("missed_sound_uri", uri).apply()
+    fun hapticsEnabled(c: Context) = prefs(c).getBoolean("haptics", true)
+    fun setHapticsEnabled(c: Context, on: Boolean) = prefs(c).edit().putBoolean("haptics", on).apply()
+    fun vibrationEnabled(c: Context) = prefs(c).getBoolean("vibration", true)
+    fun setVibrationEnabled(c: Context, on: Boolean) = prefs(c).edit().putBoolean("vibration", on).apply()
+    fun theme(c: Context): String = prefs(c).getString("theme", "system") ?: "system"
+    fun setTheme(c: Context, t: String) = prefs(c).edit().putString("theme", t).apply()
+    fun speedDial(c: Context): String? = prefs(c).getString("speed_dial", null)
+    fun setSpeedDial(c: Context, number: String?) = prefs(c).edit().putString("speed_dial", number).apply()
+
 }
 
 /**

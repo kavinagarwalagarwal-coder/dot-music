@@ -148,6 +148,9 @@ class OnboardingActivity : Activity() {
                 actions.addView(permissionRow(Manifest.permission.READ_CONTACTS, R.string.allow_contacts))
                 actions.addView(permissionRow(Manifest.permission.READ_CALL_LOG, R.string.allow_history))
                 actions.addView(permissionRow(Manifest.permission.CALL_PHONE, R.string.allow_calls))
+                if (Build.VERSION.SDK_INT >= 33) {
+                    actions.addView(permissionRow(Manifest.permission.POST_NOTIFICATIONS, R.string.notifications))
+                }
                 primary(getString(R.string.continue_label)) { show(3) }
             }
             else -> {

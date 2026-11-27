@@ -79,6 +79,54 @@ object Contacts {
         }.getOrNull()
     }
 
+    /** One person, with all of their numbers. The People tab shows this instead of one row per number. */
+    data class ContactGroup(
+        val key: String,
+        val name: String,
+        val numbers: List<String>,
+        val photoUri: String?
+    ) {
+        val mainNumber: String get() = numbers.firstOrNull() ?: ""
+        val mainKey: String get() = Store.key(mainNumber)
+    }
+
+    /** Reading the address book once, grouped by contact. Both block, so call them off the UI. */
+    fun contacts(context: Context, limit: Int = 400): List<ContactGroup> {
+        val out = ArrayList<ContactGroup>()
+        runCatching {
+            val projection = arrayOf(
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                ContactsContract.CommonDataKinds.Phone.NUMBER,
+                ContactsContract.CommonDataKinds.Phone.PHOTO_URI
+            )
+            context.contentResolver.query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                projection, null, null,
+                "${ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME} COLLATE NOCASE ASC"
+            )?.use { cursor ->
+                val idIndex = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
+                val nameIndex = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+                val numberIndex = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                val photoIndex = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.PHOTO_URI)
+                val groups = linkedMapOf<Long, ContactGroup>()
+                while (cursor.moveToNext() && groups.size < limit) {
+                    val id = cursor.getLong(idIndex)
+                    val name = cursor.getString(nameIndex).orEmpty().trim().ifBlank { " " }
+                    val number = cursor.getString(numberIndex).orEmpty().trim()
+                    if (number.isBlank()) continue
+                    if (Store.key(number).isEmpty()) continue
+                    val photo = cursor.getString(photoIndex)
+                    groups.getOrPut(id) {
+                        ContactGroup(Store.key(number), name, mutableListOf(), photo?.takeUnless { it.isBlank() })
+                    }.numbers.add(number)
+                }
+                groups.values.forEach { out.add(it) }
+            }
+        }
+        return out
+    }
+
     /** A recently called person, as the call log knows them. */
     data class Recent(
         val name: String,

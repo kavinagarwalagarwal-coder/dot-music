@@ -51,16 +51,17 @@ class DialerActivity : Activity() {
     private lateinit var contactsList: LinearLayout
     private lateinit var starsGrid: LinearLayout
     private lateinit var search: EditText
+    private lateinit var badge: TextView
     private val tabViews = ArrayList<TextView>()
 
     private val number = StringBuilder()
     private var page = PAGE_KEYPAD
-    private var people: List<Person>? = null
+    private var groups: List<ContactGroup>? = null
     private var recents: List<Contacts.Recent>? = null
     private var nameToken = 0
     private var pendingCall: String? = null
     private var sheet: View? = null
-    private var pickingFor: Person? = null
+    private var pickingFor: ContactGroup? = null
     private var bottomInset = 0
     private val systemPhotos = android.util.LruCache<String, Bitmap>(48)
 
@@ -81,6 +82,8 @@ class DialerActivity : Activity() {
         if (!Store.onboarded(this)) {
             startActivity(Intent(this, OnboardingActivity::class.java))
         }
+        if (Store.missedNotifications(this)) MissedCalls.start(this)
+        updateBadge()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -91,10 +94,23 @@ class DialerActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        MissedCalls.appVisible = true
         if (::defaultBanner.isInitialized) {
             updateDefaultBanner()
             refreshCurrentPage()
         }
+        updateBadge()
+        if (MissedCalls.countNow > 0) MissedCalls.opened(this)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        MissedCalls.appVisible = false
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        MissedCalls.stop(this)
     }
 
     override fun onBackPressed() {
@@ -171,6 +187,10 @@ class DialerActivity : Activity() {
         title.addView(Glass.label(this, getString(R.string.app_tagline), Glass.DIM))
         row.addView(title, LinearLayout.LayoutParams(0, -2, 1f))
 
+        val right = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
         val settings = TextView(this).apply {
             text = "⋯"
             textSize = 20f
@@ -185,7 +205,22 @@ class DialerActivity : Activity() {
                 startActivity(Intent(this@DialerActivity, SettingsActivity::class.java))
             }
         }
-        row.addView(settings, LinearLayout.LayoutParams(dp(44f), dp(44f)))
+        right.addView(settings, LinearLayout.LayoutParams(dp(44f), dp(44f)))
+        badge = TextView(this).apply {
+            text = ""
+            textSize = 11f
+            gravity = Gravity.CENTER
+            setTextColor(Glass.INK)
+            background = Glass.fill(this@DialerActivity, Glass.RED, 999f)
+            isClickable = true
+            isFocusable = true
+            contentDescription = getString(R.string.missed_title)
+            setOnClickListener { missedAction() }
+        }
+        right.addView(badge, LinearLayout.LayoutParams(dp(22f), dp(22f)).apply {
+            setMargins(dp(6f), 0, 0, 0)
+        })
+        row.addView(right, LinearLayout.LayoutParams(0, -2).apply { gravity = Gravity.END })
         return row
     }
 
@@ -218,7 +253,7 @@ class DialerActivity : Activity() {
 
     private fun refreshCurrentPage() = when (page) {
         PAGE_RECENTS -> fillRecents()
-        PAGE_CONTACTS -> fillContacts(search.text.toString())
+        PAGE_CONTACTS -> fillPeople(search.text.toString())
         PAGE_STARS -> fillStars()
         else -> Unit
     }
@@ -405,7 +440,7 @@ class DialerActivity : Activity() {
             addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-                override fun afterTextChanged(s: Editable?) = renderContacts(s?.toString().orEmpty())
+                override fun afterTextChanged(s: Editable?) = renderPeople(s?.toString().orEmpty())
             })
         }
         page.addView(search, LinearLayout.LayoutParams(-1, dp(48f)))
@@ -444,13 +479,17 @@ class DialerActivity : Activity() {
     private fun renderRecents(rows: List<Contacts.Recent>) {
         recentsList.removeAllViews()
         if (rows.isEmpty()) { recentsList.addView(empty(getString(R.string.no_calls))); return }
-        rows.forEach { recent ->
+        val grouped = rows.groupBy { it.key }.mapValues { it.value.first() }.toList()
+            .sortedByDescending { it.second.date }
+        grouped.forEach { (_, recent) ->
+            val count = rows.filter { it.key == recent.key }.size
             val missed = recent.type == android.provider.CallLog.Calls.MISSED_TYPE ||
                 recent.type == android.provider.CallLog.Calls.REJECTED_TYPE
             val label = recent.name.ifBlank { recent.number }
-            val detail = "${typeLabel(recent.type)} · " + DateUtils.getRelativeTimeSpanString(
-                recent.date, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS
-            )
+            val detail = "${typeLabel(recent.type)}${if (count > 1) " · $count" else ""} · " +
+                DateUtils.getRelativeTimeSpanString(
+                    recent.date, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS
+                )
             recentsList.addView(row(
                 avatarFor(recent.key, label, recent.photoUri, dp(44f)),
                 label, detail,
@@ -461,7 +500,7 @@ class DialerActivity : Activity() {
         }
     }
 
-    private fun fillContacts(query: String) {
+    private fun fillPeople(query: String) {
         contactsList.removeAllViews()
         if (!enabled(Manifest.permission.READ_CONTACTS)) {
             contactsList.addView(prompt(getString(R.string.allow_contacts), getString(R.string.permission_note)) {
@@ -469,34 +508,35 @@ class DialerActivity : Activity() {
             })
             return
         }
-        val cached = people
-        if (cached != null) { renderContacts(query); return }
+        val cached = groups
+        if (cached != null) { renderPeople(query); return }
         Thread {
-            val found = Contacts.load(this)
+            val found = Contacts.contacts(this)
             runOnUiThread {
                 if (isFinishing) return@runOnUiThread
-                people = found
-                renderContacts(query)
+                groups = found
+                renderPeople(query)
             }
         }.start()
     }
 
-    private fun renderContacts(query: String) {
+    private fun renderPeople(query: String) {
         contactsList.removeAllViews()
-        val all = people ?: return
+        val all = groups ?: return
         val needle = query.trim()
         val digits = needle.filter { it.isDigit() }
         val shown = all.filter {
             needle.isEmpty() || it.name.contains(needle, true) ||
-                (digits.isNotEmpty() && it.number.filter { c -> c.isDigit() }.contains(digits))
+                (digits.isNotEmpty() && it.numbers.any { num -> num.filter { c -> c.isDigit() }.contains(digits) })
         }
         if (shown.isEmpty()) { contactsList.addView(empty(getString(R.string.no_contacts))); return }
-        shown.take(80).forEach { person ->
+        shown.take(80).forEach { group ->
+            val numbersText = group.numbers.joinToString(", ") { it }
             contactsList.addView(row(
-                avatarFor(person.key, person.name, person.photoUri, dp(44f)),
-                person.name, person.number, Glass.INK,
-                onClick = { openPerson(person) },
-                onLong = { dial(person.number) }
+                avatarFor(group.key, group.name, group.photoUri, dp(44f)),
+                group.name, numbersText, Glass.INK,
+                onClick = { openGroup(group) },
+                onLong = { dial(group.mainNumber) }
             ))
         }
     }
@@ -509,11 +549,11 @@ class DialerActivity : Activity() {
             })
             return
         }
-        val cached = people
+        val cached = groups
         if (cached == null) {
             Thread {
-                val found = Contacts.load(this)
-                runOnUiThread { if (!isFinishing) { people = found; fillStars() } }
+                val found = Contacts.contacts(this)
+                runOnUiThread { if (!isFinishing) { groups = found; fillStars() } }
             }.start()
             return
         }
@@ -525,30 +565,30 @@ class DialerActivity : Activity() {
         }
         favourites.chunked(4).forEach { chunk ->
             val line = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-            chunk.forEach { person ->
-                line.addView(starCell(person), LinearLayout.LayoutParams(0, dp(96f), 1f))
+            chunk.forEach { group ->
+                line.addView(starCell(group), LinearLayout.LayoutParams(0, dp(96f), 1f))
             }
             repeat(4 - chunk.size) { line.addView(View(this), LinearLayout.LayoutParams(0, dp(96f), 1f)) }
             starsGrid.addView(line, LinearLayout.LayoutParams(-1, -2))
         }
     }
 
-    private fun starCell(person: Person) = LinearLayout(this).apply {
+    private fun starCell(group: ContactGroup) = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
         gravity = Gravity.CENTER
         isClickable = true
         isFocusable = true
         addView(ImageView(this@DialerActivity).apply {
-            setImageBitmap(avatarFor(person.key, person.name, person.photoUri, dp(62f)))
+            setImageBitmap(avatarFor(group.key, group.name, group.photoUri, dp(62f)))
             scaleType = ImageView.ScaleType.FIT_CENTER
         }, LinearLayout.LayoutParams(dp(62f), dp(62f)))
-        addView(Glass.text(this@DialerActivity, person.name.substringBefore(' '), 10f, Glass.MUTED).apply {
+        addView(Glass.text(this@DialerActivity, group.name.substringBefore(' '), 10f, Glass.MUTED).apply {
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
             gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6f) })
-        setOnClickListener { openPerson(person) }
-        setOnLongClickListener { dial(person.number); true }
+        setOnClickListener { openGroup(group) }
+        setOnLongClickListener { dial(group.mainNumber); true }
     }
 
     private fun row(
@@ -666,7 +706,7 @@ class DialerActivity : Activity() {
 
     // ---------------------------------------------------------------- the contact card
 
-    private fun openPerson(person: Person) {
+    private fun openGroup(group: ContactGroup) {
         closeSheet()
         val overlay = FrameLayout(this).apply {
             background = android.graphics.drawable.ColorDrawable(Color.argb(168, 3, 4, 6))
@@ -686,15 +726,15 @@ class DialerActivity : Activity() {
             showTitle = false
             mono = Store.whiteDots(this@DialerActivity)
             accent = Glass.GREEN
-            setTitle(person.name)
+            setTitle(group.name)
         }
-        record.setArt(ContactPhotos.load(this, person.key), animate = false)
-        card.addView(record, LinearLayout.LayoutParams(-1, dp(186f)))
+        record.setArt(ContactPhotos.load(this, group.key), animate = false)
+        card.addView(record, LinearLayout.LayoutParams(-1, dp(170f)))
 
-        card.addView(Glass.text(this, person.name, 20f, Glass.INK, medium = true).apply {
+        card.addView(Glass.text(this, group.name, 20f, Glass.INK, medium = true).apply {
             gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6f) })
-        card.addView(Glass.text(this, person.number, 11f, Glass.MUTED, dot = true, spacing = 0.1f).apply {
+        card.addView(Glass.text(this, group.numbers.joinToString(", ") { it }, 11f, Glass.MUTED, dot = true, spacing = 0.1f).apply {
             gravity = Gravity.CENTER
         }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4f) })
 
@@ -703,10 +743,10 @@ class DialerActivity : Activity() {
             gravity = Gravity.CENTER
         }
         actions.addView(pill(getString(R.string.call), Glass.GREEN, Color.rgb(4, 20, 13), filled = true) {
-            dial(person.number)
+            dial(group.mainNumber)
         }, LinearLayout.LayoutParams(0, dp(48f), 1f).apply { setMargins(dp(4f), dp(14f), dp(4f), 0) })
         actions.addView(pill(getString(R.string.message), Color.WHITE, Glass.INK) {
-            message(person.number)
+            message(group.mainNumber)
         }, LinearLayout.LayoutParams(0, dp(48f), 1f).apply { setMargins(dp(4f), dp(14f), dp(4f), 0) })
         card.addView(actions, LinearLayout.LayoutParams(-1, -2))
 
@@ -714,13 +754,13 @@ class DialerActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
         }
-        val starred = Store.starred(this).contains(person.key)
+        val starred = Store.starred(this).contains(group.key)
         tools.addView(tool(if (starred) getString(R.string.unstar) else getString(R.string.star)) {
-            Store.toggleStar(this@DialerActivity, person.key)
-            openPerson(person)
+            Store.toggleStar(this@DialerActivity, group.key)
+            openGroup(group)
         }, LinearLayout.LayoutParams(0, dp(44f), 1f).apply { setMargins(dp(4f), dp(10f), dp(4f), 0) })
         tools.addView(tool(getString(R.string.choose_photo)) {
-            pickingFor = person
+            pickingFor = group
             val pick = Intent(Intent.ACTION_GET_CONTENT).apply {
                 type = "image/*"
                 addCategory(Intent.CATEGORY_OPENABLE)
@@ -729,15 +769,15 @@ class DialerActivity : Activity() {
         }, LinearLayout.LayoutParams(0, dp(44f), 1f).apply { setMargins(dp(4f), dp(10f), dp(4f), 0) })
         tools.addView(tool(getString(R.string.copy)) {
             val clipboard = getSystemService(ClipboardManager::class.java)
-            clipboard?.setPrimaryClip(ClipData.newPlainText(getString(R.string.phone_number), person.number))
+            clipboard?.setPrimaryClip(ClipData.newPlainText(getString(R.string.phone_number), group.mainNumber))
             Toast.makeText(this, R.string.copied, Toast.LENGTH_SHORT).show()
         }, LinearLayout.LayoutParams(0, dp(44f), 1f).apply { setMargins(dp(4f), dp(10f), dp(4f), 0) })
         card.addView(tools, LinearLayout.LayoutParams(-1, -2))
 
-        if (ContactPhotos.has(this, person.key)) {
+        if (ContactPhotos.has(this, group.key)) {
             card.addView(tool(getString(R.string.remove_photo), Glass.RED) {
-                ContactPhotos.clear(this@DialerActivity, person.key)
-                openPerson(person)
+                ContactPhotos.clear(this@DialerActivity, group.key)
+                openGroup(group)
             }, LinearLayout.LayoutParams(-1, dp(42f)).apply { setMargins(dp(4f), dp(8f), dp(4f), 0) })
         }
 
@@ -751,8 +791,8 @@ class DialerActivity : Activity() {
         sheet = overlay
 
         // The address-book photo is turned into dots off the main thread, then fades in.
-        val photoUri = person.photoUri
-        if (!ContactPhotos.has(this, person.key) && !photoUri.isNullOrBlank()) {
+        val photoUri = group.photoUri
+        if (!ContactPhotos.has(this, group.key) && !photoUri.isNullOrBlank()) {
             Thread {
                 val source = ContactPhotos.decode(this, Uri.parse(photoUri))
                 runOnUiThread {
@@ -797,6 +837,25 @@ class DialerActivity : Activity() {
         open.animate().alpha(0f).setDuration(160).withEndAction { root.removeView(open) }.start()
     }
 
+    private fun updateBadge() {
+        if (!::badge.isInitialized) return
+        val n = MissedCalls.countNow
+        val show = n > 0 && Store.missedNotifications(this) && Store.badgeEnabled(this)
+        badge.visibility = if (show) View.VISIBLE else View.GONE
+        badge.text = if (show) n.toString() else ""
+    }
+
+    private fun missedAction() {
+        val number = MissedCalls.numberNow ?: return
+        try {
+            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$number"))
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
+        } catch (_: Exception) {}
+        MissedCalls.clear(this)
+        updateBadge()
+    }
+
     private fun message(number: String) {
         val intent = Intent(Intent.ACTION_SENDTO, Uri.fromParts("smsto", number, null))
         runCatching { startActivity(intent) }
@@ -808,19 +867,19 @@ class DialerActivity : Activity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode != REQ_PHOTO || resultCode != RESULT_OK) return
         val uri = data?.data ?: return
-        val person = pickingFor ?: return
+        val group = pickingFor ?: return
         val bitmap = ContactPhotos.decode(this, uri)
         if (bitmap == null) {
             Toast.makeText(this, R.string.photo_failed, Toast.LENGTH_SHORT).show()
             return
         }
         Thread {
-            val saved = ContactPhotos.save(this, person.key, bitmap)
+            val saved = ContactPhotos.save(this, group.key, bitmap)
             runOnUiThread {
                 if (isFinishing) return@runOnUiThread
                 if (!saved) Toast.makeText(this, R.string.photo_failed, Toast.LENGTH_SHORT).show()
                 refreshCurrentPage()
-                openPerson(person)
+                openGroup(group)
             }
         }.start()
     }
@@ -889,7 +948,8 @@ class DialerActivity : Activity() {
                 if (allowed && next != null) dial(next)
             }
             REQ_RECENTS -> if (allowed) { recents = null; fillRecents() }
-            REQ_CONTACTS -> if (allowed) { people = null; refreshCurrentPage() }
+            REQ_CONTACTS -> if (allowed) { groups = null; refreshCurrentPage() }
+            REQ_RECENTS -> if (allowed) { recents = null; fillRecents(); if (Store.missedNotifications(this)) MissedCalls.start(this) }
         }
     }
 

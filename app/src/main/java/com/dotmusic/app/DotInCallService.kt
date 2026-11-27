@@ -45,6 +45,7 @@ class DotInCallService : InCallService() {
             service = null
             muted = false
             speaker = false
+            MissedCalls.onCallEnded(this)
         } else currentCall?.let(::showCallNotification)
         broadcastCallChanged()
         super.onCallRemoved(call)
