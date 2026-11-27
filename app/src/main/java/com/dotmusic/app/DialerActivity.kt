@@ -340,7 +340,7 @@ class DialerActivity : Activity() {
     }
 
     private fun tap(digit: String) {
-        performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
+        window.decorView.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
         number.append(digit)
         refreshNumber()
     }

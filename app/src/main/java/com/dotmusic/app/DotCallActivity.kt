@@ -2,7 +2,6 @@ package com.dotmusic.app
 
 import android.app.Activity
 import android.content.BroadcastReceiver
-import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -90,8 +89,8 @@ class DotCallActivity : Activity() {
             // would reach the music, so both are off here.
             stage.showControls = false
             stage.gestures = false
-            stage.topReserve = dp(64f)
-            stage.bottomReserve = dp(140f)
+            stage.topReserve = dp(64f).toFloat()
+            stage.bottomReserve = dp(140f).toFloat()
         }
         root.addView(player, FrameLayout.LayoutParams(-1, -1))
 
@@ -290,18 +289,21 @@ class DotCallActivity : Activity() {
             var found: String? = null
             var picture: Bitmap? = null
             runCatching {
+                val projection = arrayOf(
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                    ContactsContract.CommonDataKinds.Phone.PHOTO_URI
+                )
                 contentResolver.query(
-                    Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(handle)),
-                    arrayOf(ContactsContract.PhoneLookup.DISPLAY_NAME, ContactsContract.PhoneLookup.CONTACT_ID),
-                    null, null, null
+                    Uri.withAppendedPath(ContactsContract.CommonDataKinds.Phone.CONTENT_FILTER_URI, Uri.encode(handle)),
+                    projection, null, null, null
                 )?.use { cursor ->
                     if (cursor.moveToFirst()) {
                         found = cursor.getString(0)
-                        val id = cursor.getLong(1)
-                        val contact = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, id)
-                        contentResolver.openContactPhotoInputStream(contact, true)?.use { stream ->
-                            val options = BitmapFactory.Options().apply { inSampleSize = 2 }
-                            picture = BitmapFactory.decodeStream(stream, null, options)
+                        val photoUri = cursor.getString(1)
+                        if (!photoUri.isNullOrBlank()) {
+                            contentResolver.openInputStream(Uri.parse(photoUri))?.use { stream ->
+                                picture = BitmapFactory.decodeStream(stream)
+                            }
                         }
                     }
                 }
