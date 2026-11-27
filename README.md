@@ -4,6 +4,8 @@
 
 Open the app and you're in the player: the album cover becomes a spinning record made of hundreds of dots, in a dot-matrix style inspired by Nothing. Another app does the playing: YouTube Music by default, or any player you choose (Dot Player, Spotify, JioSaavn…). Dot is the screen, the controls and the picks.
 
+Dot also includes a native keypad and contact picker. Choose **Make Dot your default phone app** to place carrier calls directly from Dot and use its own incoming and active call screen, with the spinning dot-matrix animation. Android requires your explicit approval before an app can become the default dialer; calls stay with Android's existing dialer until you grant that role.
+
 [**⬇ Download the latest APK**](../../releases/tag/latest) · Android 8.0+
 
 ## Online music, inside Dot
