@@ -250,7 +250,7 @@ class SettingsActivity : Activity() {
         val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
             type = "audio/ringtone"
             putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
-            putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, getString(R.string.choose_missed_sound))
+            putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, getString(R.string.missed_sound_desc))
             putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(Store.missedSoundUri(this) ?: ""))
         }
         startActivityForResult(intent, REQ_SOUND)
