@@ -54,6 +54,7 @@ class DialerActivity : Activity() {
     private lateinit var search: EditText
     private lateinit var badge: TextView
     private lateinit var tabPill: View
+    private lateinit var pageTitle: TextView
     private val tabViews = ArrayList<TextView>()
 
     private val number = StringBuilder()
@@ -152,11 +153,11 @@ class DialerActivity : Activity() {
             insets
         }
 
-        content.addView(header(), LinearLayout.LayoutParams(-1, dp(44f)))
+        content.addView(header(), LinearLayout.LayoutParams(-1, -2))
 
-        val tabs = FrameLayout(this).apply { background = Glass.panel(this@DialerActivity, 26f) }
+        val tabs = FrameLayout(this).apply { background = Glass.card(this@DialerActivity, 22f) }
         tabPill = View(this).apply {
-            background = Glass.panel(this@DialerActivity, 20f, strength = 2.6f)
+            background = Glass.panel(this@DialerActivity, 18f, strength = 3.4f)
             alpha = 0f
         }
         tabs.addView(tabPill, FrameLayout.LayoutParams(0, -1).apply { setMargins(dp(4f), dp(4f), 0, dp(4f)) })
@@ -176,7 +177,7 @@ class DialerActivity : Activity() {
             }
             placePill(page, false)
         }
-        content.addView(tabs, LinearLayout.LayoutParams(-1, dp(46f)).apply { topMargin = dp(12f) })
+        content.addView(tabs, LinearLayout.LayoutParams(-1, dp(44f)).apply { topMargin = dp(16f) })
 
         keypadPage = buildKeypad()
         recentsPage = buildListPage { recentsList = it }
@@ -194,19 +195,19 @@ class DialerActivity : Activity() {
     private fun header(): View {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
+            gravity = Gravity.BOTTOM
         }
-        val title = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
-        title.addView(Glass.text(this, "DOT", 22f, Glass.INK, dot = true, spacing = 0.16f))
-        title.addView(Glass.label(this, getString(R.string.app_tagline), Glass.DIM))
+        val title = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        title.addView(Glass.text(this, "DOT", 9f, Glass.GREEN, dot = true, spacing = 0.22f).apply {
+            setPadding(dp(2f), 0, 0, dp(4f))
+        })
+        pageTitle = Glass.display(this, getString(R.string.tab_keypad), 32f)
+        title.addView(pageTitle)
         row.addView(title, LinearLayout.LayoutParams(0, -2, 1f))
 
         val right = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
+            gravity = Gravity.BOTTOM
         }
         val settings = TextView(this).apply {
             text = "⋯"
@@ -237,17 +238,17 @@ class DialerActivity : Activity() {
             setOnClickListener { Glass.tap(this); missedAction() }
         }
         right.addView(badge, LinearLayout.LayoutParams(dp(22f), dp(22f)).apply {
-            setMargins(dp(6f), 0, 0, 0)
+            setMargins(dp(6f), 0, 0, dp(10f))
         })
-        row.addView(right, LinearLayout.LayoutParams(0, -2).apply { gravity = Gravity.END })
+        row.addView(right, LinearLayout.LayoutParams(0, -2).apply { gravity = Gravity.BOTTOM })
         return row
     }
 
     private fun tab(label: String, index: Int) = TextView(this).apply {
-        text = label.uppercase()
-        typeface = Glass.doto(this@DialerActivity)
-        textSize = 10f
-        letterSpacing = 0.1f
+        text = label
+        typeface = Glass.medium(this@DialerActivity)
+        textSize = 12f
+        letterSpacing = 0.01f
         gravity = Gravity.CENTER
         setTextColor(Glass.MUTED)
         isClickable = true
@@ -259,6 +260,22 @@ class DialerActivity : Activity() {
     private fun showPage(index: Int) {
         val changed = page != index
         page = index
+        val titles = arrayOf(
+            R.string.tab_keypad, R.string.tab_recents, R.string.tab_people, R.string.tab_stars
+        )
+        if (::pageTitle.isInitialized) {
+            val next = getString(titles[index])
+            if (pageTitle.text.toString() != next) {
+                pageTitle.animate().cancel()
+                pageTitle.animate().alpha(0f).setDuration(80).withEndAction {
+                    pageTitle.text = next
+                    pageTitle.alpha = 0f
+                    pageTitle.translationY = dp(6f).toFloat()
+                    pageTitle.animate().alpha(1f).translationY(0f)
+                        .setDuration(220).setInterpolator(Motion.out).start()
+                }.start()
+            }
+        }
         val all = listOf(keypadPage, recentsPage, contactsPage, starsPage)
         all.forEachIndexed { i, view -> view.visibility = if (i == index) View.VISIBLE else View.GONE }
         tabViews.forEachIndexed { i, view ->
@@ -319,8 +336,8 @@ class DialerActivity : Activity() {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            background = Glass.panel(this@DialerActivity, 30f)
-            setPadding(dp(14f), dp(8f), dp(10f), dp(8f))
+            background = Glass.card(this@DialerActivity, 20f)
+            setPadding(dp(14f), dp(6f), dp(8f), dp(6f))
         }
         avatar = ImageView(this).apply {
             scaleType = ImageView.ScaleType.FIT_CENTER
@@ -329,7 +346,7 @@ class DialerActivity : Activity() {
         card.addView(avatar, LinearLayout.LayoutParams(dp(44f), dp(44f)).apply { rightMargin = dp(12f) })
 
         val stack = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_VERTICAL }
-        display = Glass.text(this, getString(R.string.enter_number), 31f, Glass.DIM)
+        display = Glass.text(this, getString(R.string.enter_number), 30f, Glass.DIM)
         display.typeface = Glass.light(this)
         display.maxLines = 1
         display.ellipsize = TextUtils.TruncateAt.START
@@ -364,7 +381,30 @@ class DialerActivity : Activity() {
             }
         }
         card.addView(erase, LinearLayout.LayoutParams(dp(48f), dp(48f)))
-        page.addView(card, LinearLayout.LayoutParams(-1, dp(86f)))
+        page.addView(card, LinearLayout.LayoutParams(-1, dp(78f)))
+
+        page.addView(View(this), LinearLayout.LayoutParams(-1, 0, 1f))
+
+        defaultBanner = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            background = Glass.card(this@DialerActivity, 16f)
+            isClickable = true
+            setOnClickListener { requestDialerRole() }
+            setPadding(dp(12f), 0, dp(12f), 0)
+        }
+        defaultBanner.addView(Glass.section(this, getString(R.string.make_default), Glass.GREEN))
+        page.addView(defaultBanner, LinearLayout.LayoutParams(-1, dp(40f)).apply { topMargin = dp(10f) })
+
+        val sheet = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = Glass.sheet(this@DialerActivity, 28f)
+            setPadding(dp(10f), dp(8f), dp(10f), dp(12f))
+        }
+        sheet.addView(Glass.grabber(this), LinearLayout.LayoutParams(dp(36f), dp(4f)).apply {
+            gravity = Gravity.CENTER_HORIZONTAL
+            bottomMargin = dp(10f)
+        })
 
         val keypad = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         val keys = listOf(
@@ -377,56 +417,44 @@ class DialerActivity : Activity() {
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             rowKeys.forEach { (digit, letters) ->
                 row.addView(key(digit, letters),
-                    LinearLayout.LayoutParams(0, -1, 1f).apply { setMargins(dp(4f), dp(4f), dp(4f), dp(4f)) })
+                    LinearLayout.LayoutParams(0, -1, 1f).apply { setMargins(dp(3f), dp(3f), dp(3f), dp(3f)) })
             }
             keypad.addView(row, LinearLayout.LayoutParams(-1, 0, 1f))
         }
-        page.addView(keypad, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(8f) })
-
-        defaultBanner = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER
-            background = Glass.panel(this@DialerActivity, 22f)
-            isClickable = true
-            setOnClickListener { requestDialerRole() }
-            setPadding(dp(12f), 0, dp(12f), 0)
-        }
-        defaultBanner.addView(Glass.label(this, getString(R.string.make_default), Glass.GREEN))
-        page.addView(defaultBanner, LinearLayout.LayoutParams(-1, dp(38f)).apply { topMargin = dp(8f) })
+        sheet.addView(keypad, LinearLayout.LayoutParams(-1, 0, 1f))
 
         callButton = TextView(this).apply {
-            text = getString(R.string.call).uppercase()
-            typeface = Glass.doto(this@DialerActivity)
-            textSize = 15f
-            letterSpacing = 0.16f
+            text = getString(R.string.call)
+            typeface = Glass.medium(this@DialerActivity)
+            textSize = 16f
             gravity = Gravity.CENTER
-            setTextColor(Color.rgb(4, 20, 13))
-            background = Glass.fill(this@DialerActivity, Glass.GREEN, 30f)
+            setTextColor(Glass.ON_GREEN)
+            background = Glass.fill(this@DialerActivity, Glass.GREEN, 27f)
             isClickable = true
             isFocusable = true
             contentDescription = getString(R.string.call)
-            Motion.press(this, 0.97f)
             setOnClickListener { Glass.tap(this); dial(number.toString()) }
         }
-        page.addView(callButton, LinearLayout.LayoutParams(-1, dp(58f)).apply { topMargin = dp(10f) })
+        sheet.addView(callButton, LinearLayout.LayoutParams(-1, dp(54f)).apply { topMargin = dp(8f) })
+        page.addView(sheet, LinearLayout.LayoutParams(-1, 0, 2.3f).apply { topMargin = dp(10f) })
         return page
     }
 
     private fun key(digit: String, letters: String) = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
         gravity = Gravity.CENTER
-        background = Glass.key(this@DialerActivity, 24f)
+        background = Glass.key(this@DialerActivity, 22f)
         isClickable = true
         isFocusable = true
-        Motion.press(this, 0.93f)
-        addView(Glass.text(this@DialerActivity, digit, 26f, Glass.INK).apply {
+        Motion.press(this, 0.94f)
+        addView(Glass.text(this@DialerActivity, digit, 27f, Glass.INK).apply {
             gravity = Gravity.CENTER
             typeface = Glass.light(this@DialerActivity)
         })
-        if (letters.isNotEmpty()) addView(Glass.text(this@DialerActivity, letters, 8f, Glass.MUTED, dot = true, spacing = 0.14f).apply {
+        if (letters.isNotEmpty()) addView(Glass.text(this@DialerActivity, letters, 9f, Glass.MUTED, spacing = 0.08f).apply {
             gravity = Gravity.CENTER
         })
-        if (digit == "1") addView(Glass.text(this@DialerActivity, "VM", 8f, Glass.MUTED, dot = true, spacing = 0.14f).apply {
+        if (digit == "1") addView(Glass.text(this@DialerActivity, "VM", 9f, Glass.MUTED, spacing = 0.08f).apply {
             gravity = Gravity.CENTER
         })
         setOnClickListener {
@@ -639,12 +667,11 @@ class DialerActivity : Activity() {
                 onLong = { putNumber(recent.number) }
             )
         }
-        cards.forEach { recentsList.addView(it) }
+        grouped(cards, recentsList)
         Motion.enterAll(cards.take(12))
     }
 
-    private fun fillPeople(query: String) {
-        contactsList.removeAllViews()
+    private fun fillPeople(query: String) {        contactsList.removeAllViews()
         if (!enabled(Manifest.permission.READ_CONTACTS)) {
             contactsList.addView(prompt(getString(R.string.allow_contacts), getString(R.string.permission_note)) {
                 requestPermissions(arrayOf(Manifest.permission.READ_CONTACTS), REQ_CONTACTS)
@@ -675,7 +702,7 @@ class DialerActivity : Activity() {
         if (shown.isEmpty()) { contactsList.addView(empty(getString(R.string.no_contacts))); return }
         val cards = ArrayList<View>()
         shown.take(80).forEach { group ->
-            val numbersText = group.numbers.joinToString(", ") { it }
+            val numbersText = group.numbers.distinct().joinToString(", ") { it }
             cards += row(
                 avatarFor(group.key, group.name, group.photoUri, dp(44f)),
                 group.name, numbersText, Glass.INK,
@@ -683,7 +710,7 @@ class DialerActivity : Activity() {
                 onLong = { dialTarget(group.mainNumber) }
             )
         }
-        cards.forEach { contactsList.addView(it) }
+        grouped(cards, contactsList)
         Motion.enterAll(cards.take(12))
     }
 
@@ -739,7 +766,7 @@ class DialerActivity : Activity() {
             setImageBitmap(avatarFor(group.key, group.name, group.photoUri, dp(56f)))
             scaleType = ImageView.ScaleType.FIT_CENTER
         }, LinearLayout.LayoutParams(dp(56f), dp(56f)))
-        addView(Glass.text(this@DialerActivity, group.name.substringBefore(' '), 10f, Glass.MUTED).apply {
+        addView(Glass.text(this@DialerActivity, group.name.substringBefore(' '), 11.5f, Glass.MUTED).apply {
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
             gravity = Gravity.CENTER
@@ -759,11 +786,11 @@ class DialerActivity : Activity() {
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            background = Glass.panel(this@DialerActivity, 24f)
-            setPadding(dp(12f), dp(10f), dp(14f), dp(10f))
+            background = Glass.row(this@DialerActivity)
+            setPadding(dp(14f), dp(10f), dp(10f), dp(10f))
+            minimumHeight = dp(66f)
             isClickable = true
             isFocusable = true
-            Motion.press(this, 0.985f)
             setOnClickListener { Glass.tap(this); onClick() }
             setOnLongClickListener { Glass.tap(this); onLong(); true }
         }
@@ -772,17 +799,32 @@ class DialerActivity : Activity() {
             scaleType = ImageView.ScaleType.FIT_CENTER
         }, LinearLayout.LayoutParams(dp(44f), dp(44f)).apply { rightMargin = dp(12f) })
         val stack = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        stack.addView(Glass.text(this@DialerActivity, title, 15f, titleColor).apply {
+        stack.addView(Glass.text(this@DialerActivity, title, 16f, titleColor).apply {
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
         })
-        stack.addView(Glass.text(this@DialerActivity, detail.uppercase(), 9f, Glass.MUTED, dot = true, spacing = 0.08f).apply {
+        stack.addView(Glass.text(this@DialerActivity, detail, 12.5f, Glass.MUTED).apply {
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
+            setPadding(0, dp(2f), 0, 0)
         })
         box.addView(stack, LinearLayout.LayoutParams(0, -2, 1f))
-        box.layoutParams = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8f) }
+        box.addView(ImageView(this).apply {
+            setImageResource(R.drawable.ic_call_line)
+            setColorFilter(Glass.MUTED)
+            contentDescription = getString(R.string.call)
+        }, LinearLayout.LayoutParams(dp(22f), dp(22f)).apply { leftMargin = dp(8f) })
         return box
+    }
+
+    /** Rows in one card, each with its own ripple and a hairline between them. */
+    private fun grouped(rows: List<View>, list: LinearLayout) {
+        val card = Glass.group(this)
+        rows.forEachIndexed { i, view ->
+            if (i > 0) card.addView(Glass.divider(this, dp(70f)))
+            card.addView(view)
+        }
+        list.addView(card, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12f) })
     }
 
     private fun avatarFor(key: String, name: String, photoUri: String?, sizePx: Int): Bitmap {
@@ -823,20 +865,20 @@ class DialerActivity : Activity() {
     private fun prompt(title: String, note: String, onAsk: () -> Unit): View {
         val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         box.addView(TextView(this).apply {
-            text = title.uppercase()
-            typeface = Glass.doto(this@DialerActivity)
-            textSize = 11f
-            letterSpacing = 0.1f
+            text = title
+            typeface = Glass.medium(this@DialerActivity)
+            textSize = 14f
             gravity = Gravity.CENTER
             setTextColor(Glass.INK)
-            background = Glass.panel(this@DialerActivity, 24f)
+            background = Glass.panel(this@DialerActivity, 18f)
             isClickable = true
             isFocusable = true
             setOnClickListener { onAsk() }
-        }, LinearLayout.LayoutParams(-1, dp(50f)))
-        box.addView(Glass.text(this, note, 12f, Glass.MUTED).apply {
+        }, LinearLayout.LayoutParams(-1, dp(52f)))
+        box.addView(Glass.text(this, note, 12.5f, Glass.MUTED).apply {
             gravity = Gravity.CENTER
-            setPadding(dp(6f), dp(12f), dp(6f), 0)
+            setLineSpacing(dp(2f).toFloat(), 1f)
+            setPadding(dp(10f), dp(12f), dp(10f), 0)
         })
         return box
     }
@@ -867,7 +909,7 @@ class DialerActivity : Activity() {
     private fun openGroup(group: ContactGroup) {
         closeSheet()
         activeMatch = null
-        val dim = android.graphics.drawable.ColorDrawable(Color.argb(0, 3, 4, 6))
+        val dim = android.graphics.drawable.ColorDrawable(Color.argb(0, 0, 0, 0))
         val overlay = FrameLayout(this).apply {
             background = dim
             isClickable = true
@@ -875,8 +917,9 @@ class DialerActivity : Activity() {
         }
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            background = Glass.panel(this@DialerActivity, 32f, strength = 1.4f)
-            setPadding(dp(16f), dp(16f), dp(16f), dp(16f))
+            background = Glass.card(this@DialerActivity, 28f)
+            clipToOutline = true
+            setPadding(dp(14f), dp(14f), dp(14f), dp(16f))
             isClickable = true
             setOnClickListener { }
         }
@@ -891,18 +934,20 @@ class DialerActivity : Activity() {
         record.setArt(ContactPhotos.load(this, group.key), animate = false)
         card.addView(record, LinearLayout.LayoutParams(-1, dp(170f)))
 
-        card.addView(Glass.text(this, group.name, 20f, Glass.INK, medium = true).apply {
+        card.addView(Glass.display(this, group.name, 25f).apply {
             gravity = Gravity.CENTER
-        }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6f) })
-        card.addView(Glass.text(this, group.numbers.joinToString(", ") { it }, 11f, Glass.MUTED, dot = true, spacing = 0.1f).apply {
+        }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4f) })
+        card.addView(Glass.text(this, group.numbers.distinct().joinToString(", ") { it }, 13f, Glass.MUTED).apply {
             gravity = Gravity.CENTER
+            maxLines = 1
+            ellipsize = TextUtils.TruncateAt.END
         }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4f) })
 
         val actions = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
         }
-        actions.addView(pill(getString(R.string.call), Glass.GREEN, Color.rgb(4, 20, 13), filled = true) {
+        actions.addView(pill(getString(R.string.call), Glass.GREEN, Glass.ON_GREEN, filled = true) {
             dialTarget(group.mainNumber)
         }, LinearLayout.LayoutParams(0, dp(48f), 1f).apply { setMargins(dp(4f), dp(14f), dp(4f), 0) })
         actions.addView(pill(getString(R.string.message), Color.WHITE, Glass.INK) {
@@ -945,7 +990,7 @@ class DialerActivity : Activity() {
             setMargins(dp(14f), 0, dp(14f), bottomInset + dp(14f))
         })
         root.addView(overlay, FrameLayout.LayoutParams(-1, -1))
-        android.animation.ValueAnimator.ofInt(0, 168).apply {
+        android.animation.ValueAnimator.ofInt(0, 214).apply {
             duration = 240
             addUpdateListener { anim ->
                 dim.alpha = (anim.animatedValue as Int).coerceIn(0, 255)
@@ -975,10 +1020,9 @@ class DialerActivity : Activity() {
 
     private fun pill(label: String, fill: Int, ink: Int, filled: Boolean = false, action: () -> Unit) =
         TextView(this).apply {
-            text = label.uppercase()
-            typeface = Glass.doto(this@DialerActivity)
-            textSize = 12f
-            letterSpacing = 0.12f
+            text = label
+            typeface = Glass.medium(this@DialerActivity)
+            textSize = 15f
             gravity = Gravity.CENTER
             setTextColor(ink)
             background = if (filled) Glass.fill(this@DialerActivity, fill, 26f)
@@ -990,15 +1034,15 @@ class DialerActivity : Activity() {
 
     private fun tool(label: String, tint: Int = Glass.INK, action: () -> Unit) =
         TextView(this).apply {
-            text = label.uppercase()
-            typeface = Glass.doto(this@DialerActivity)
-            textSize = 9f
-            letterSpacing = 0.08f
+            text = label
+            typeface = Glass.medium(this@DialerActivity)
+            textSize = 13f
             gravity = Gravity.CENTER
             setTextColor(tint)
-            background = Glass.panel(this@DialerActivity, 22f)
+            background = Glass.panel(this@DialerActivity, 16f)
             isClickable = true
             isFocusable = true
+            Motion.press(this, 0.96f)
             setOnClickListener { Glass.tap(this); action() }
         }
 

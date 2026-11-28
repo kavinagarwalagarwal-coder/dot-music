@@ -70,9 +70,9 @@ class SettingsActivity : Activity() {
 
         val header = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
+            gravity = Gravity.BOTTOM
         }
-        header.addView(Glass.text(this, getString(R.string.settings_title), 18f, Glass.INK, medium = true),
+        header.addView(Glass.display(this, getString(R.string.settings_title), 32f),
             LinearLayout.LayoutParams(0, -2, 1f))
         header.addView(TextView(this).apply {
             text = "✕"
@@ -83,9 +83,10 @@ class SettingsActivity : Activity() {
             isClickable = true
             isFocusable = true
             contentDescription = getString(R.string.close)
+            Motion.press(this, 0.94f)
             setOnClickListener { finish() }
-        }, LinearLayout.LayoutParams(dp(42f), dp(42f)))
-        column.addView(header, LinearLayout.LayoutParams(-1, dp(44f)))
+        }, LinearLayout.LayoutParams(dp(42f), dp(42f)).apply { bottomMargin = dp(4f) })
+        column.addView(header, LinearLayout.LayoutParams(-1, -2))
 
         val scroll = ScrollView(this).apply {
             isFillViewport = true
@@ -99,10 +100,8 @@ class SettingsActivity : Activity() {
         val rows = ArrayList<View>()
         list.addView(section(getString(R.string.section_phone)))
         phoneRow = setting(getString(R.string.default_phone), "", "PH") { requestDialerRole() }
-        list.addView(phoneRow)
         speedDialRow = setting(getString(R.string.speed_dial_desc), speedDialNote(), "1") { pickSpeedDial() }
-        list.addView(speedDialRow)
-        list.addView(infoLine(getString(R.string.voicemail_longpress)))
+        list.addView(group(phoneRow, speedDialRow, infoLine(getString(R.string.voicemail_longpress))))
         rows += phoneRow
         rows += speedDialRow
 
@@ -111,22 +110,18 @@ class SettingsActivity : Activity() {
             Store.setWhiteDots(this, !Store.whiteDots(this))
             refreshRows()
         }
-        list.addView(dotsRow)
         hapticsRow = setting(getString(R.string.haptics), hapticsNote(), "HA") { toggleHaptics() }
-        list.addView(hapticsRow)
         vibrationRow = setting(getString(R.string.vibration), vibrationNote(), "VI") { toggleVibration() }
-        list.addView(vibrationRow)
+        list.addView(group(dotsRow, hapticsRow, vibrationRow))
         rows += dotsRow
         rows += hapticsRow
         rows += vibrationRow
 
         list.addView(section(getString(R.string.section_missed)))
         missedNotificationsRow = setting(getString(R.string.missed_notifications), missedNotificationsNote(), "MI") { toggleMissedNotifications() }
-        list.addView(missedNotificationsRow)
         badgeRow = setting(getString(R.string.badge), badgeNote(), "BA") { toggleBadge() }
-        list.addView(badgeRow)
         missedSoundRow = setting(getString(R.string.missed_sound_desc), missedSoundNote(), "SO") { pickMissedSound() }
-        list.addView(missedSoundRow)
+        list.addView(group(missedNotificationsRow, badgeRow, missedSoundRow))
         rows += missedNotificationsRow
         rows += badgeRow
         rows += missedSoundRow
@@ -143,11 +138,10 @@ class SettingsActivity : Activity() {
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
         }
-        list.addView(photos)
         val tour = setting(getString(R.string.replay_tour), "", "TO") {
             startActivity(Intent(this, OnboardingActivity::class.java).putExtra(OnboardingActivity.EXTRA_REPLAY, true))
         }
-        list.addView(tour)
+        list.addView(group(photos, tour))
         rows += photos
         rows += tour
 
@@ -157,7 +151,7 @@ class SettingsActivity : Activity() {
             getString(R.string.version, Updates.installedName(this)),
             "UP"
         ) { checkForUpdates() }
-        list.addView(updates)
+        list.addView(group(updates))
         rows += updates
         Motion.enterAll(rows, 26, 12f)
 
@@ -168,25 +162,29 @@ class SettingsActivity : Activity() {
         return root
     }
 
-    private fun section(label: String): View {
-        val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        box.addView(View(this).apply { background = Glass.hairline(this@SettingsActivity) },
-            LinearLayout.LayoutParams(-1, dp(1f)).apply { topMargin = dp(14f) })
-        box.addView(Glass.label(this, label, Glass.GREEN).apply {
-            setPadding(dp(6f), dp(10f), dp(6f), dp(8f))
-        })
-        return box
+    private fun section(label: String): View = Glass.section(this, label).apply {
+        setPadding(dp(6f), dp(22f), dp(6f), dp(9f))
+    }
+
+    /** Rows stacked in one card, a hairline between them, inset past the leading glyph. */
+    private fun group(vararg rows: View): View {
+        val card = Glass.group(this)
+        rows.forEachIndexed { i, row ->
+            if (i > 0) card.addView(Glass.divider(this, dp(58f)))
+            card.addView(row)
+        }
+        return card
     }
 
     private fun setting(title: String, note: String, glyph: String, onClick: () -> Unit): LinearLayout {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            background = Glass.panel(this@SettingsActivity, 22f)
-            setPadding(dp(12f), dp(11f), dp(14f), dp(11f))
+            background = Glass.row(this@SettingsActivity)
+            setPadding(dp(14f), dp(12f), dp(14f), dp(12f))
+            minimumHeight = dp(60f)
             isClickable = true
             isFocusable = true
-            Motion.press(this, 0.99f)
             setOnClickListener { Glass.tap(this); onClick() }
         }
         row.addView(TextView(this).apply {
@@ -196,19 +194,18 @@ class SettingsActivity : Activity() {
             letterSpacing = 0.08f
             gravity = Gravity.CENTER
             setTextColor(Glass.GREEN)
-            background = Glass.chip(this@SettingsActivity, Glass.GREEN, 12f)
-        }, LinearLayout.LayoutParams(dp(34f), dp(34f)).apply { rightMargin = dp(12f) })
+            background = Glass.chip(this@SettingsActivity, Glass.GREEN, 11f)
+        }, LinearLayout.LayoutParams(dp(32f), dp(32f)).apply { rightMargin = dp(12f) })
 
         val stack = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        stack.addView(Glass.text(this@SettingsActivity, title, 14f, Glass.INK))
-        val noteView = Glass.text(this@SettingsActivity, note, 11f, Glass.MUTED, dot = true, spacing = 0.06f).apply {
-            setPadding(0, dp(3f), 0, 0)
+        stack.addView(Glass.text(this@SettingsActivity, title, 16f, Glass.INK))
+        val noteView = Glass.text(this@SettingsActivity, note, 12.5f, Glass.MUTED).apply {
+            setPadding(0, dp(2f), 0, 0)
         }
         stack.addView(noteView)
         notes[row] = noteView
         row.addView(stack, LinearLayout.LayoutParams(0, -2, 1f))
-        row.addView(Glass.text(this@SettingsActivity, "\u203A", 19f, Glass.DIM))
-        row.layoutParams = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8f) }
+        row.addView(Glass.text(this@SettingsActivity, "\u203A", 20f, Glass.DIM))
         return row
     }
 
@@ -223,8 +220,8 @@ class SettingsActivity : Activity() {
         notes[missedSoundRow]?.text = missedSoundNote()
     }
 
-    private fun infoLine(text: String): View = Glass.text(this, text, 11f, Glass.MUTED).apply {
-        setPadding(dp(16f), dp(10f), dp(16f), dp(10f))
+    private fun infoLine(text: String): View = Glass.text(this, text, 12.5f, Glass.MUTED).apply {
+        setPadding(dp(58f), dp(2f), dp(16f), dp(14f))
         setLineSpacing(dp(3f).toFloat(), 1f)
     }
 
