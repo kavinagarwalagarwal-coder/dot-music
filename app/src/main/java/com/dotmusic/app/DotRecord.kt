@@ -49,7 +49,7 @@ class DotRecord(context: Context) : View(context), Choreographer.FrameCallback {
             field = value
             invalidate()
         }
-    var accent = Glass.ACCENT
+    var accent = Glass.RED
         set(value) {
             field = value
             glowColor = 0

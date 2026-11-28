@@ -39,12 +39,15 @@ object Glass {
     val INK = Color.WHITE
     val MUTED = Color.rgb(142, 142, 147)
     val DIM = Color.rgb(98, 98, 104)
-    /** The one accent: a flat signal red. */
-    val ACCENT = Color.rgb(255, 59, 48)
 
-    /** Ink on top of [ACCENT]: near-black, so a filled pill reads as ink on paint. */
-    val ON_ACCENT = Color.rgb(18, 4, 3)
-    val RED = Color.rgb(255, 69, 58)
+    /**
+     * The one red. There is exactly one in the app: the brand accent and the call screen's
+     * end/decline action are the same colour, never two shades a few points apart.
+     */
+    val RED = Color.rgb(255, 59, 48)
+
+    /** Ink on a filled red pill: near-black, so it reads as ink on paint. */
+    val ON_RED = Color.rgb(18, 4, 3)
     val AMBER = Color.rgb(255, 205, 120)
     val BLUE = Color.rgb(124, 178, 255)
 

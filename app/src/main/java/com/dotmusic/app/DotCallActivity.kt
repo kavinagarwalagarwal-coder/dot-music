@@ -90,7 +90,7 @@ class DotCallActivity : Activity() {
         record = DotRecord(this).apply {
             topReserve = dp(84f).toFloat()
             bottomReserve = dp(250f).toFloat()
-            accent = Glass.ACCENT
+            accent = Glass.RED
             mono = Store.whiteDots(this@DotCallActivity)
         }
         root.addView(record, FrameLayout.LayoutParams(-1, -1))
@@ -143,7 +143,7 @@ class DotCallActivity : Activity() {
             textSize = 13f
             letterSpacing = 0.16f
             gravity = Gravity.CENTER
-            setTextColor(Color.WHITE)
+            setTextColor(Glass.ON_RED)
             background = Glass.fill(this@DotCallActivity, Glass.RED, 26f)
             isClickable = true
             isFocusable = true
@@ -153,10 +153,10 @@ class DotCallActivity : Activity() {
         panel.addView(end, LinearLayout.LayoutParams(-1, dp(50f)).apply { topMargin = dp(10f) })
 
         ringingRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER }
-        val decline = pill(getString(R.string.decline), Glass.RED, Color.WHITE) {
+        val decline = pill(getString(R.string.decline), Glass.RED, Glass.ON_RED) {
             DotInCallService.currentCall?.disconnect()
         }
-        val answer = pill(getString(R.string.answer), Glass.ACCENT, Glass.ON_ACCENT, filled = true) {
+        val answer = pill(getString(R.string.answer), Color.WHITE, Glass.BG, filled = true) {
             DotInCallService.currentCall?.answer(VideoProfile.STATE_AUDIO_ONLY)
         }
         ringingRow.addView(decline, LinearLayout.LayoutParams(0, dp(54f), 1f).apply { setMargins(dp(5f), 0, dp(5f), 0) })
@@ -341,18 +341,12 @@ class DotCallActivity : Activity() {
             else -> getString(R.string.in_call)
         }
         status.text = stateText.uppercase()
-        status.setTextColor(
-            when {
-                held -> Glass.AMBER
-                incoming -> Glass.ACCENT
-                else -> Glass.INK
-            }
-        )
+        status.setTextColor(if (held) Glass.AMBER else Glass.INK)
 
         val title = name?.takeIf { it.isNotBlank() } ?: number.ifBlank { getString(R.string.unknown_caller) }
         val accent = when {
             held -> Glass.AMBER
-            active || incoming -> Glass.ACCENT
+            active || incoming -> Glass.RED
             else -> Glass.BLUE
         }
         val playing = callState == Call.STATE_RINGING || callState == Call.STATE_DIALING ||
@@ -401,7 +395,7 @@ class DotCallActivity : Activity() {
     private fun paint(button: TextView, on: Boolean, onLabel: String, offLabel: String) {
         button.text = (if (on) onLabel else offLabel).uppercase()
         button.background = if (on) Glass.fill(this, Color.WHITE, 999f) else Glass.panel(this, 999f)
-        button.setTextColor(if (on) Glass.ON_ACCENT else Glass.INK)
+        button.setTextColor(if (on) Glass.BG else Glass.INK)
     }
 
     private fun clock(seconds: Long) = String.format("%02d:%02d", seconds / 60, seconds % 60)
