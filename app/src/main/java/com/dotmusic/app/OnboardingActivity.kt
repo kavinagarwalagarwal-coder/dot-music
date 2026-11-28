@@ -191,8 +191,8 @@ class OnboardingActivity : Activity() {
         textSize = 13f
         letterSpacing = 0.14f
         gravity = Gravity.CENTER
-        setTextColor(Color.rgb(4, 20, 13))
-        background = Glass.fill(this@OnboardingActivity, Glass.GREEN, 28f)
+        setTextColor(Glass.ON_ACCENT)
+        background = Glass.fill(this@OnboardingActivity, Glass.ACCENT, 28f)
         isClickable = true
         isFocusable = true
         Motion.press(this, 0.97f)
@@ -228,7 +228,7 @@ class OnboardingActivity : Activity() {
                 this@OnboardingActivity,
                 if (allowed) getString(R.string.allowed) else getString(R.string.allow),
                 10f,
-                if (allowed) Glass.GREEN else Glass.MUTED,
+                if (allowed) Glass.ACCENT else Glass.MUTED,
                 dot = true, spacing = 0.1f
             ))
             setOnClickListener {

@@ -49,7 +49,7 @@ class DotRecord(context: Context) : View(context), Choreographer.FrameCallback {
             field = value
             invalidate()
         }
-    var accent = Glass.GREEN
+    var accent = Glass.ACCENT
         set(value) {
             field = value
             glowColor = 0
@@ -271,14 +271,14 @@ class DotRecord(context: Context) : View(context), Choreographer.FrameCallback {
         mix = if (animate) 0f else 1f
     }
 
-    /** Nothing chosen yet: a soft mint-to-white gradient record, so the screen still looks alive. */
+    /** Nothing chosen yet: a soft red-to-white gradient record, so the screen still looks alive. */
     private fun demoCover(): Bitmap {
         val b = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888)
         val c = Canvas(b)
         val p = Paint().apply {
             shader = LinearGradient(
                 0f, 0f, 64f, 64f,
-                intArrayOf(0xFF54ECAA.toInt(), 0xFF1B2436.toInt(), 0xFFF2F6FF.toInt()),
+                intArrayOf(0xFFFF3B30.toInt(), 0xFF1C070A.toInt(), 0xFFF8EEEE.toInt()),
                 null, Shader.TileMode.CLAMP
             )
         }

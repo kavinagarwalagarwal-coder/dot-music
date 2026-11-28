@@ -198,7 +198,7 @@ class DialerActivity : Activity() {
             gravity = Gravity.BOTTOM
         }
         val title = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        title.addView(Glass.text(this, "DOT", 9f, Glass.GREEN, dot = true, spacing = 0.22f).apply {
+        title.addView(Glass.text(this, "DOT", 9f, Glass.ACCENT, dot = true, spacing = 0.22f).apply {
             setPadding(dp(2f), 0, 0, dp(4f))
         })
         pageTitle = Glass.display(this, getString(R.string.tab_keypad), 32f)
@@ -351,7 +351,7 @@ class DialerActivity : Activity() {
         display.maxLines = 1
         display.ellipsize = TextUtils.TruncateAt.START
         display.contentDescription = getString(R.string.phone_number)
-        matched = Glass.text(this, "", 10f, Glass.GREEN, dot = true, spacing = 0.12f)
+        matched = Glass.text(this, "", 10f, Glass.ACCENT, dot = true, spacing = 0.12f)
         matched.maxLines = 1
         matched.ellipsize = TextUtils.TruncateAt.END
         stack.addView(display)
@@ -393,7 +393,7 @@ class DialerActivity : Activity() {
             setOnClickListener { requestDialerRole() }
             setPadding(dp(12f), 0, dp(12f), 0)
         }
-        defaultBanner.addView(Glass.section(this, getString(R.string.make_default), Glass.GREEN))
+        defaultBanner.addView(Glass.section(this, getString(R.string.make_default), Glass.ACCENT))
         page.addView(defaultBanner, LinearLayout.LayoutParams(-1, dp(40f)).apply { topMargin = dp(10f) })
 
         val sheet = LinearLayout(this).apply {
@@ -428,8 +428,8 @@ class DialerActivity : Activity() {
             typeface = Glass.medium(this@DialerActivity)
             textSize = 16f
             gravity = Gravity.CENTER
-            setTextColor(Glass.ON_GREEN)
-            background = Glass.fill(this@DialerActivity, Glass.GREEN, 27f)
+            setTextColor(Glass.ON_ACCENT)
+            background = Glass.fill(this@DialerActivity, Glass.ACCENT, 27f)
             isClickable = true
             isFocusable = true
             contentDescription = getString(R.string.call)
@@ -928,7 +928,7 @@ class DialerActivity : Activity() {
             showInfo = false
             showTitle = false
             mono = Store.whiteDots(this@DialerActivity)
-            accent = Glass.GREEN
+            accent = Glass.ACCENT
             setTitle(group.name)
         }
         record.setArt(ContactPhotos.load(this, group.key), animate = false)
@@ -947,7 +947,7 @@ class DialerActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
         }
-        actions.addView(pill(getString(R.string.call), Glass.GREEN, Glass.ON_GREEN, filled = true) {
+        actions.addView(pill(getString(R.string.call), Glass.ACCENT, Glass.ON_ACCENT, filled = true) {
             dialTarget(group.mainNumber)
         }, LinearLayout.LayoutParams(0, dp(48f), 1f).apply { setMargins(dp(4f), dp(14f), dp(4f), 0) })
         actions.addView(pill(getString(R.string.message), Color.WHITE, Glass.INK) {

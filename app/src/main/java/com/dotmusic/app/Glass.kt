@@ -39,8 +39,11 @@ object Glass {
     val INK = Color.WHITE
     val MUTED = Color.rgb(142, 142, 147)
     val DIM = Color.rgb(98, 98, 104)
-    val GREEN = Color.rgb(48, 209, 88)
-    val ON_GREEN = Color.rgb(3, 18, 9)
+    /** The one accent: a flat signal red. */
+    val ACCENT = Color.rgb(255, 59, 48)
+
+    /** Ink on top of [ACCENT]: near-black, so a filled pill reads as ink on paint. */
+    val ON_ACCENT = Color.rgb(18, 4, 3)
     val RED = Color.rgb(255, 69, 58)
     val AMBER = Color.rgb(255, 205, 120)
     val BLUE = Color.rgb(124, 178, 255)
@@ -211,8 +214,8 @@ object Glass {
 }
 
 /**
- * The backdrop every screen sits on: near-black, a whisper of mint above and a cool one below, and
- * a very faint dot grid.
+ * The backdrop every screen sits on: near-black, a whisper of red above and a deeper crimson
+ * below, and a very faint dot grid.
  *
  * The grid and the resting auras are painted once into a static child view, so the hardware
  * renderer keeps them as a display list and they cost nothing per frame. Only [AuraGlow] animates,
@@ -231,8 +234,8 @@ class AuraBackdrop(context: Context) : FrameLayout(context) {
 /** The still half: base colour, two resting auras and the dot grid. Drawn once. */
 private class AuraField(context: Context) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private var mint: Shader? = null
-    private var cool: Shader? = null
+    private var topGlow: Shader? = null
+    private var bottomGlow: Shader? = null
 
     init {
         isClickable = false
@@ -241,23 +244,23 @@ private class AuraField(context: Context) : View(context) {
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         val reach = max(w, h).toFloat()
-        mint = RadialGradient(
+        topGlow = RadialGradient(
             w * 0.16f, h * 0.02f, reach * 0.62f,
-            intArrayOf(Color.argb(20, 84, 236, 170), Color.TRANSPARENT), null, Shader.TileMode.CLAMP
+            intArrayOf(Color.argb(24, 255, 64, 54), Color.TRANSPARENT), null, Shader.TileMode.CLAMP
         )
-        cool = RadialGradient(
+        bottomGlow = RadialGradient(
             w * 0.92f, h * 1.02f, reach * 0.58f,
-            intArrayOf(Color.argb(15, 92, 158, 255), Color.TRANSPARENT), null, Shader.TileMode.CLAMP
+            intArrayOf(Color.argb(18, 150, 18, 40), Color.TRANSPARENT), null, Shader.TileMode.CLAMP
         )
     }
 
     override fun onDraw(canvas: Canvas) {
         canvas.drawColor(Glass.BG)
-        mint?.let {
+        topGlow?.let {
             paint.shader = it
             canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
         }
-        cool?.let {
+        bottomGlow?.let {
             paint.shader = it
             canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
         }
@@ -282,8 +285,8 @@ private class AuraField(context: Context) : View(context) {
  * screen. Two draw calls a frame, no shader rebuilt, no garbage.
  */
 private class AuraGlow(context: Context) : View(context), Choreographer.FrameCallback {
-    private val mint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val cool = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val topGlow = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val bottomGlow = Paint(Paint.ANTI_ALIAS_FLAG)
     private var radius = 1f
     private var t = 0f
     private var last = 0L
@@ -296,13 +299,13 @@ private class AuraGlow(context: Context) : View(context), Choreographer.FrameCal
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         radius = max(w, h) * 0.55f
-        mint.shader = RadialGradient(
+        topGlow.shader = RadialGradient(
             0f, 0f, radius,
-            intArrayOf(Color.argb(16, 84, 236, 170), Color.TRANSPARENT), null, Shader.TileMode.CLAMP
+            intArrayOf(Color.argb(20, 255, 64, 54), Color.TRANSPARENT), null, Shader.TileMode.CLAMP
         )
-        cool.shader = RadialGradient(
+        bottomGlow.shader = RadialGradient(
             0f, 0f, radius * 0.85f,
-            intArrayOf(Color.argb(13, 92, 158, 255), Color.TRANSPARENT), null, Shader.TileMode.CLAMP
+            intArrayOf(Color.argb(15, 150, 18, 40), Color.TRANSPARENT), null, Shader.TileMode.CLAMP
         )
     }
 
@@ -311,14 +314,14 @@ private class AuraGlow(context: Context) : View(context), Choreographer.FrameCal
         val my = height * (0.02f + 0.05f * (0.5f + 0.5f * cos(t * 0.17f)))
         canvas.save()
         canvas.translate(mx, my)
-        canvas.drawCircle(0f, 0f, radius, mint)
+        canvas.drawCircle(0f, 0f, radius, topGlow)
         canvas.restore()
 
         val cx = width * (0.92f - 0.06f * sin(t * 0.15f))
         val cy = height * (0.99f - 0.05f * (0.5f + 0.5f * cos(t * 0.19f)))
         canvas.save()
         canvas.translate(cx, cy)
-        canvas.drawCircle(0f, 0f, radius * 0.85f, cool)
+        canvas.drawCircle(0f, 0f, radius * 0.85f, bottomGlow)
         canvas.restore()
     }
 

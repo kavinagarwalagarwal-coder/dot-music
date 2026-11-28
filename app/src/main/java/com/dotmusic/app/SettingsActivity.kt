@@ -193,8 +193,8 @@ class SettingsActivity : Activity() {
             textSize = 11f
             letterSpacing = 0.08f
             gravity = Gravity.CENTER
-            setTextColor(Glass.GREEN)
-            background = Glass.chip(this@SettingsActivity, Glass.GREEN, 11f)
+            setTextColor(Glass.ACCENT)
+            background = Glass.chip(this@SettingsActivity, Glass.ACCENT, 11f)
         }, LinearLayout.LayoutParams(dp(32f), dp(32f)).apply { rightMargin = dp(12f) })
 
         val stack = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
