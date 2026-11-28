@@ -53,9 +53,13 @@ class DialerActivity : Activity() {
     private lateinit var starsGrid: LinearLayout
     private lateinit var search: EditText
     private lateinit var badge: TextView
-    private lateinit var tabPill: View
     private lateinit var pageTitle: TextView
-    private val tabViews = ArrayList<TextView>()
+    private lateinit var aura: AuraBackdrop
+    private lateinit var dock: LinearLayout
+    private lateinit var dockHolder: FrameLayout
+    private val dockItems = ArrayList<LinearLayout>()
+    private val dockIcons = ArrayList<ImageView>()
+    private val dockLabels = ArrayList<TextView>()
 
     private val number = StringBuilder()
     private var page = PAGE_NONE
@@ -100,6 +104,7 @@ class DialerActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        Glass.tapListener = { view -> if (::aura.isInitialized) aura.matrix.rippleFrom(view) }
         MissedCalls.appVisible = true
         if (::defaultBanner.isInitialized) {
             updateDefaultBanner()
@@ -109,9 +114,23 @@ class DialerActivity : Activity() {
         if (MissedCalls.countNow > 0) MissedCalls.opened(this)
     }
 
+    override fun onPause() {
+        super.onPause()
+        Glass.tapListener = null
+    }
+
     override fun onStop() {
         super.onStop()
         MissedCalls.appVisible = false
+    }
+
+    /**
+     * Every touch is handed to the dot grid before the views see it, so the dots follow the finger
+     * across keys, rows and the dock alike.
+     */
+    override fun dispatchTouchEvent(ev: android.view.MotionEvent): Boolean {
+        if (::aura.isInitialized) aura.matrix.track(ev)
+        return super.dispatchTouchEvent(ev)
     }
 
     override fun onDestroy() {
@@ -139,7 +158,8 @@ class DialerActivity : Activity() {
 
     private fun buildUi(): View {
         root = FrameLayout(this)
-        root.addView(AuraBackdrop(this), FrameLayout.LayoutParams(-1, -1))
+        aura = AuraBackdrop(this)
+        root.addView(aura, FrameLayout.LayoutParams(-1, -1))
         content = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(content, FrameLayout.LayoutParams(-1, -1))
         root.setOnApplyWindowInsetsListener { _, insets ->
@@ -149,35 +169,12 @@ class DialerActivity : Activity() {
             val top = maxOf(insets.systemWindowInsetTop, cutout)
             @Suppress("DEPRECATION")
             bottomInset = insets.systemWindowInsetBottom
-            content.setPadding(dp(18f), top + dp(8f), dp(18f), bottomInset + dp(10f))
+            content.setPadding(dp(18f), top + dp(8f), dp(18f), bottomInset + dp(68f))
+            if (::dockHolder.isInitialized) dockHolder.setPadding(0, 0, 0, bottomInset + dp(14f))
             insets
         }
 
         content.addView(header(), LinearLayout.LayoutParams(-1, -2))
-
-        val tabs = FrameLayout(this).apply { background = Glass.card(this@DialerActivity, 22f) }
-        tabPill = View(this).apply {
-            background = Glass.panel(this@DialerActivity, 18f, strength = 3.4f)
-            alpha = 0f
-        }
-        tabs.addView(tabPill, FrameLayout.LayoutParams(0, -1).apply { setMargins(dp(4f), dp(4f), 0, dp(4f)) })
-        val track = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        track.addView(tab(getString(R.string.tab_keypad), PAGE_KEYPAD), LinearLayout.LayoutParams(0, -1, 1f))
-        track.addView(tab(getString(R.string.tab_recents), PAGE_RECENTS), LinearLayout.LayoutParams(0, -1, 1f))
-        track.addView(tab(getString(R.string.tab_people), PAGE_CONTACTS), LinearLayout.LayoutParams(0, -1, 1f))
-        track.addView(tab(getString(R.string.tab_stars), PAGE_STARS), LinearLayout.LayoutParams(0, -1, 1f))
-        tabs.addView(track, FrameLayout.LayoutParams(-1, -1))
-        tabs.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
-            val unit = (v.width - dp(8f)) / 4
-            if (unit <= 0) return@addOnLayoutChangeListener
-            val lp = tabPill.layoutParams as FrameLayout.LayoutParams
-            if (lp.width != unit) {
-                lp.width = unit
-                tabPill.layoutParams = lp
-            }
-            placePill(page, false)
-        }
-        content.addView(tabs, LinearLayout.LayoutParams(-1, dp(44f)).apply { topMargin = dp(16f) })
 
         keypadPage = buildKeypad()
         recentsPage = buildListPage { recentsList = it }
@@ -188,8 +185,101 @@ class DialerActivity : Activity() {
         pages.addView(recentsPage, FrameLayout.LayoutParams(-1, -1))
         pages.addView(contactsPage, FrameLayout.LayoutParams(-1, -1))
         pages.addView(starsPage, FrameLayout.LayoutParams(-1, -1))
-        content.addView(pages, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(12f) })
+        content.addView(pages, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(16f) })
+        buildDock()
         return root
+    }
+
+    /**
+     * Navigation lives at the bottom, the way the reference does it: one filled pill naming the
+     * page you are on, a quiet circle for each of the others, floating over the list. Nothing sits
+     * between the title and the content.
+     */
+    private fun buildDock() {
+        dock = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+        }
+        dock.addView(dockItem(PAGE_KEYPAD, R.drawable.ic_dialpad, getString(R.string.tab_keypad)), dockSlot())
+        dock.addView(dockItem(PAGE_RECENTS, R.drawable.ic_call_line, getString(R.string.tab_recents)), dockSlot())
+        dock.addView(dockItem(PAGE_CONTACTS, R.drawable.ic_people, getString(R.string.tab_people)), dockSlot())
+        dock.addView(dockItem(PAGE_STARS, R.drawable.ic_star_outline, getString(R.string.tab_stars)), dockSlot())
+        dockHolder = FrameLayout(this).apply {
+            setPadding(0, 0, 0, bottomInset + dp(14f))
+            addView(dock, FrameLayout.LayoutParams(-1, dp(46f), Gravity.BOTTOM))
+        }
+        root.addView(dockHolder, FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM))
+        updateDock(PAGE_KEYPAD, false)
+        Motion.enter(dockHolder, 140, 18f)
+    }
+
+    private fun dockSlot() = LinearLayout.LayoutParams(-2, dp(46f)).apply {
+        setMargins(dp(5f), 0, dp(5f), 0)
+    }
+
+    private fun dockItem(index: Int, icon: Int, name: String): LinearLayout {
+        val item = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            isClickable = true
+            isFocusable = true
+            contentDescription = name
+            Motion.press(this, 0.94f)
+            setOnClickListener {
+                Glass.tap(this)
+                if (page != index) showPage(index)
+            }
+        }
+        val glyph = ImageView(this).apply {
+            setImageResource(icon)
+            setColorFilter(Glass.MUTED)
+            scaleType = ImageView.ScaleType.FIT_CENTER
+        }
+        item.addView(glyph, LinearLayout.LayoutParams(dp(21f), dp(21f)))
+        val text = TextView(this).apply {
+            text = name
+            textSize = 13f
+            typeface = Glass.medium(this@DialerActivity)
+            setTextColor(Glass.INK)
+            maxLines = 1
+            setPadding(dp(8f), 0, 0, 0)
+            visibility = View.GONE
+        }
+        item.addView(text)
+        dockItems += item
+        dockIcons += glyph
+        dockLabels += text
+        return item
+    }
+
+    /** The page you are on grows into a named pill; the rest fall back to a plain circle. */
+    private fun updateDock(index: Int, animate: Boolean = true) {
+        if (!::dock.isInitialized) return
+        dockItems.forEachIndexed { i, item ->
+            val on = i == index
+            item.background = if (on) Glass.fill(this, Glass.blend(Glass.CARD, Color.WHITE, 0.16f), 999f)
+            else Glass.panel(this, 999f)
+            val side = dp(if (on) 18f else 13f)
+            item.setPadding(side, 0, side, 0)
+            dockIcons[i].setColorFilter(if (on) Glass.INK else Glass.MUTED)
+            val text = dockLabels[i]
+            text.visibility = if (on) View.VISIBLE else View.GONE
+            item.animate().cancel()
+            if (!animate) {
+                text.alpha = 1f
+                item.scaleX = 1f
+                item.scaleY = 1f
+                return@forEachIndexed
+            }
+            if (on) {
+                text.alpha = 0f
+                text.animate().alpha(1f).setDuration(200).start()
+                item.scaleX = 0.94f
+                item.scaleY = 0.94f
+                item.animate().scaleX(1f).scaleY(1f)
+                    .setDuration(240).setInterpolator(Motion.spring).start()
+            }
+        }
     }
 
     private fun header(): View {
@@ -244,19 +334,6 @@ class DialerActivity : Activity() {
         return row
     }
 
-    private fun tab(label: String, index: Int) = TextView(this).apply {
-        text = label
-        typeface = Glass.medium(this@DialerActivity)
-        textSize = 12f
-        letterSpacing = 0.01f
-        gravity = Gravity.CENTER
-        setTextColor(Glass.MUTED)
-        isClickable = true
-        isFocusable = true
-        setOnClickListener { Glass.tap(this); showPage(index) }
-        tabViews += this
-    }
-
     private fun showPage(index: Int) {
         val changed = page != index
         page = index
@@ -278,20 +355,7 @@ class DialerActivity : Activity() {
         }
         val all = listOf(keypadPage, recentsPage, contactsPage, starsPage)
         all.forEachIndexed { i, view -> view.visibility = if (i == index) View.VISIBLE else View.GONE }
-        tabViews.forEachIndexed { i, view ->
-            val on = i == index
-            view.setTextColor(if (on) Glass.INK else Glass.MUTED)
-            view.animate().cancel()
-            view.scaleX = 1f
-            view.scaleY = 1f
-            if (on) {
-                view.scaleX = 0.93f
-                view.scaleY = 0.93f
-                view.animate().scaleX(1f).scaleY(1f)
-                    .setDuration(260).setInterpolator(Motion.spring).start()
-            }
-        }
-        placePill(index, changed)
+        updateDock(index)
         val target = all[index]
         target.animate().cancel()
         if (changed) {
@@ -304,21 +368,6 @@ class DialerActivity : Activity() {
             target.translationY = 0f
         }
         refreshCurrentPage()
-    }
-
-    /** Slide the glass pill under the tab that is now showing. */
-    private fun placePill(index: Int, animate: Boolean) {
-        if (!::tabPill.isInitialized || index < 0) return
-        val unit = tabPill.layoutParams?.width ?: 0
-        if (unit <= 0) return
-        val x = dp(4f) + unit * index.toFloat()
-        tabPill.alpha = 1f
-        if (animate) {
-            tabPill.animate().x(x).setDuration(250).setInterpolator(Motion.out).start()
-        } else {
-            tabPill.animate().cancel()
-            tabPill.x = x
-        }
     }
 
     private fun refreshCurrentPage() = when (page) {
@@ -647,28 +696,49 @@ class DialerActivity : Activity() {
     private fun renderRecents(rows: List<Contacts.Recent>) {
         recentsList.removeAllViews()
         if (rows.isEmpty()) { recentsList.addView(empty(getString(R.string.no_calls))); return }
-        val grouped = rows.groupBy { it.key }.mapValues { it.value.first() }.toList()
+        val merged = rows.groupBy { it.key }.mapValues { it.value.first() }.toList()
             .sortedByDescending { it.second.date }
+        val now = System.currentTimeMillis()
+        val week = 7L * 24 * 60 * 60 * 1000
+        val entered = ArrayList<View>()
+        recentHalf(getString(R.string.section_recent), merged.filter { now - it.second.date < week }, rows, entered)
+        recentHalf(getString(R.string.section_older), merged.filter { now - it.second.date >= week }, rows, entered)
+        Motion.enterAll(entered.take(16))
+    }
+
+    /** One quiet label and its card, so the list reads in halves instead of one long pile. */
+    private fun recentHalf(
+        label: String,
+        items: List<Pair<String, Contacts.Recent>>,
+        rows: List<Contacts.Recent>,
+        entered: ArrayList<View>
+    ) {
+        if (items.isEmpty()) return
+        val heading = Glass.section(this, label).apply {
+            setPadding(dp(6f), dp(4f), 0, dp(10f))
+        }
+        recentsList.addView(heading, LinearLayout.LayoutParams(-1, -2))
+        entered += heading
         val cards = ArrayList<View>()
-        grouped.forEach { (_, recent) ->
-            val count = rows.filter { it.key == recent.key }.size
+        items.forEach { (_, recent) ->
+            val count = rows.count { it.key == recent.key }
             val missed = recent.type == android.provider.CallLog.Calls.MISSED_TYPE ||
                 recent.type == android.provider.CallLog.Calls.REJECTED_TYPE
-            val label = recent.name.ifBlank { recent.number }
+            val name = recent.name.ifBlank { recent.number }
             val detail = "${typeLabel(recent.type)}${if (count > 1) " · $count" else ""} · " +
                 DateUtils.getRelativeTimeSpanString(
                     recent.date, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS
                 )
             cards += row(
-                avatarFor(recent.key, label, recent.photoUri, dp(44f)),
-                label, detail,
+                avatarFor(recent.key, name, recent.photoUri, dp(44f)),
+                name, detail,
                 if (missed) Glass.RED else Glass.INK,
                 onClick = { dial(recent.number) },
                 onLong = { putNumber(recent.number) }
             )
         }
         grouped(cards, recentsList)
-        Motion.enterAll(cards.take(12))
+        entered += cards
     }
 
     private fun fillPeople(query: String) {        contactsList.removeAllViews()

@@ -202,11 +202,18 @@ object Glass {
     fun label(c: Context, content: CharSequence, color: Int = MUTED) =
         text(c, content, 10f, color, dot = true, spacing = 0.16f)
 
+    /**
+     * Every press in the app reports here, so the screen showing it can answer with its own motion
+     * (the dialer ripples its dot grid). Null on screens that don't care.
+     */
+    var tapListener: ((View) -> Unit)? = null
+
     /** Press feedback, the light tap the whole app uses. */
     fun tap(v: View) {
         if (Store.hapticsEnabled(v.context)) {
             v.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
         }
+        tapListener?.invoke(v)
     }
 
     fun blend(a: Int, b: Int, f: Float): Int = Color.rgb(
@@ -226,15 +233,20 @@ object Glass {
  * texture or a single allocation per frame.
  */
 class AuraBackdrop(context: Context) : FrameLayout(context) {
+    /** The grid on top: still at rest, alive under a finger. */
+    val matrix: DotMatrix
+
     init {
         isClickable = false
         isFocusable = false
         addView(AuraField(context), LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
         addView(AuraGlow(context), LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+        matrix = DotMatrix(context)
+        addView(matrix, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
     }
 }
 
-/** The still half: base colour, two resting auras and the dot grid. Drawn once. */
+/** The still half: base colour and two resting auras. Draws once; the dot grid is [DotMatrix]. */
 private class AuraField(context: Context) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var topGlow: Shader? = null
@@ -268,18 +280,6 @@ private class AuraField(context: Context) : View(context) {
             canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
         }
         paint.shader = null
-        paint.color = Color.argb(8, 255, 255, 255)
-        val step = Glass.dp(context, 28f)
-        val dot = Glass.dp(context, 1.1f)
-        var y = step / 2f
-        while (y < height) {
-            var x = step / 2f
-            while (x < width) {
-                canvas.drawCircle(x, y, dot, paint)
-                x += step
-            }
-            y += step
-        }
     }
 }
 

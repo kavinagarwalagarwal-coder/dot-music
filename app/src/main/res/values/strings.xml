@@ -27,6 +27,8 @@
     <string name="search_contacts">Search contacts</string>
     <string name="no_contacts">No contacts with numbers</string>
     <string name="no_calls">No calls yet</string>
+    <string name="section_recent">Recent</string>
+    <string name="section_older">Older</string>
     <string name="no_stars">Star someone from their card</string>
     <string name="allow_contacts">Show contacts</string>
     <string name="allow_history">Show call history</string>
