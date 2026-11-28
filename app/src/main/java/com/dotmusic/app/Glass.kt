@@ -10,9 +10,13 @@ import android.graphics.Shader
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
+import android.view.Choreographer
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.TextView
+import kotlin.math.cos
 import kotlin.math.max
+import kotlin.math.sin
 
 /**
  * Dot Phone's look: near-black glass, hairline highlight edges, soft coloured auras and the Doto
@@ -59,6 +63,21 @@ object Glass {
         return RippleDrawable(ColorStateList.valueOf(withAlpha(tint, 50)), shape, null)
     }
 
+    /**
+     * A keypad key: a touch more lit than a panel, with a bright top edge so each key reads as its
+     * own piece of glass and the ripple carries a little more weight.
+     */
+    fun key(c: Context, radius: Float = 24f): RippleDrawable {
+        val shape = GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            intArrayOf(Color.argb(40, 255, 255, 255), Color.argb(11, 255, 255, 255))
+        ).apply {
+            cornerRadius = dp(c, radius)
+            setStroke(px(c, 1f).coerceAtLeast(1), Color.argb(58, 255, 255, 255))
+        }
+        return RippleDrawable(ColorStateList.valueOf(Color.argb(64, 255, 255, 255)), shape, null)
+    }
+
     /** A solid pill, for the one filled button on a screen. */
     fun fill(c: Context, color: Int, radius: Float = 26f): RippleDrawable {
         val shape = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(
@@ -70,6 +89,26 @@ object Glass {
         }
         return RippleDrawable(ColorStateList.valueOf(withAlpha(Color.WHITE, 60)), shape, null)
     }
+
+    /** A small rounded chip: a value, a glyph, a state. */
+    fun chip(c: Context, tint: Int = Color.WHITE, radius: Float = 12f): GradientDrawable =
+        GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            intArrayOf(withAlpha(tint, 34), withAlpha(tint, 10))
+        ).apply {
+            cornerRadius = dp(c, radius)
+            setStroke(px(c, 1f).coerceAtLeast(1), withAlpha(tint, 46))
+        }
+
+    /** A one-pixel divider that fades out towards both edges. */
+    fun hairline(c: Context): GradientDrawable = GradientDrawable(
+        GradientDrawable.Orientation.LEFT_RIGHT,
+        intArrayOf(
+            Color.argb(0, 255, 255, 255),
+            Color.argb(30, 255, 255, 255),
+            Color.argb(0, 255, 255, 255)
+        )
+    ).apply { cornerRadius = dp(c, 1f) }
 
     fun text(
         c: Context,
@@ -109,23 +148,43 @@ object Glass {
 }
 
 /**
- * The backdrop every screen sits on: near-black, two soft auras (mint above, cool blue below) and a
- * faint drifting dot grid. Static, so it costs one draw and no frames.
+ * The backdrop every screen sits on: near-black, a mint aura above, a cool one below and a faint
+ * dot grid.
+ *
+ * The grid and the resting auras are painted once into a static child view, so the hardware
+ * renderer keeps them as a display list and they cost nothing per frame. Only [AuraGlow] animates,
+ * and it draws two soft gradient circles at 30 fps: the surface feels alive without a blur, a
+ * texture or a single allocation per frame.
  */
-class AuraBackdrop(context: Context) : View(context) {
+class AuraBackdrop(context: Context) : FrameLayout(context) {
+    init {
+        isClickable = false
+        isFocusable = false
+        addView(AuraField(context), LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+        addView(AuraGlow(context), LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+    }
+}
+
+/** The still half: base colour, two resting auras and the dot grid. Drawn once. */
+private class AuraField(context: Context) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var mint: Shader? = null
     private var cool: Shader? = null
 
+    init {
+        isClickable = false
+        isFocusable = false
+    }
+
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         val reach = max(w, h).toFloat()
         mint = RadialGradient(
-            w * 0.16f, h * 0.06f, reach * 0.72f,
-            intArrayOf(Color.argb(56, 84, 236, 170), Color.TRANSPARENT), null, Shader.TileMode.CLAMP
+            w * 0.16f, h * 0.04f, reach * 0.78f,
+            intArrayOf(Color.argb(44, 84, 236, 170), Color.TRANSPARENT), null, Shader.TileMode.CLAMP
         )
         cool = RadialGradient(
-            w * 0.92f, h * 0.95f, reach * 0.66f,
-            intArrayOf(Color.argb(46, 92, 158, 255), Color.TRANSPARENT), null, Shader.TileMode.CLAMP
+            w * 0.92f, h * 0.98f, reach * 0.70f,
+            intArrayOf(Color.argb(36, 92, 158, 255), Color.TRANSPARENT), null, Shader.TileMode.CLAMP
         )
     }
 
@@ -140,9 +199,9 @@ class AuraBackdrop(context: Context) : View(context) {
             canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
         }
         paint.shader = null
-        paint.color = Color.argb(20, 255, 255, 255)
-        val step = Glass.dp(context, 27f)
-        val dot = Glass.dp(context, 1.1f)
+        paint.color = Color.argb(18, 255, 255, 255)
+        val step = Glass.dp(context, 28f)
+        val dot = Glass.dp(context, 1.15f)
         var y = step / 2f
         while (y < height) {
             var x = step / 2f
@@ -152,5 +211,73 @@ class AuraBackdrop(context: Context) : View(context) {
             }
             y += step
         }
+    }
+}
+
+/**
+ * The moving half: the two auras drift on long, slow orbits so the background breathes with the
+ * screen. Two draw calls a frame, no shader rebuilt, no garbage.
+ */
+private class AuraGlow(context: Context) : View(context), Choreographer.FrameCallback {
+    private val mint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val cool = Paint(Paint.ANTI_ALIAS_FLAG)
+    private var radius = 1f
+    private var t = 0f
+    private var last = 0L
+    private var running = false
+
+    init {
+        isClickable = false
+        isFocusable = false
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        radius = max(w, h) * 0.62f
+        mint.shader = RadialGradient(
+            0f, 0f, radius,
+            intArrayOf(Color.argb(38, 84, 236, 170), Color.TRANSPARENT), null, Shader.TileMode.CLAMP
+        )
+        cool.shader = RadialGradient(
+            0f, 0f, radius * 0.85f,
+            intArrayOf(Color.argb(32, 92, 158, 255), Color.TRANSPARENT), null, Shader.TileMode.CLAMP
+        )
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        val mx = width * (0.18f + 0.07f * sin(t * 0.21f))
+        val my = height * (0.02f + 0.05f * (0.5f + 0.5f * cos(t * 0.17f)))
+        canvas.save()
+        canvas.translate(mx, my)
+        canvas.drawCircle(0f, 0f, radius, mint)
+        canvas.restore()
+
+        val cx = width * (0.92f - 0.06f * sin(t * 0.15f))
+        val cy = height * (0.99f - 0.05f * (0.5f + 0.5f * cos(t * 0.19f)))
+        canvas.save()
+        canvas.translate(cx, cy)
+        canvas.drawCircle(0f, 0f, radius * 0.85f, cool)
+        canvas.restore()
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        running = true
+        last = 0L
+        Choreographer.getInstance().postFrameCallback(this)
+    }
+
+    override fun onDetachedFromWindow() {
+        running = false
+        Choreographer.getInstance().removeFrameCallback(this)
+        super.onDetachedFromWindow()
+    }
+
+    override fun doFrame(frameTimeNanos: Long) {
+        if (!running) return
+        val dt = if (last == 0L) 0f else ((frameTimeNanos - last) / 1e9f).coerceIn(0f, 0.2f)
+        last = frameTimeNanos
+        t += dt
+        invalidate()
+        Choreographer.getInstance().postFrameCallbackDelayed(this, 33L)
     }
 }

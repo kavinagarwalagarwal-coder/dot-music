@@ -53,10 +53,12 @@ class DialerActivity : Activity() {
     private lateinit var starsGrid: LinearLayout
     private lateinit var search: EditText
     private lateinit var badge: TextView
+    private lateinit var tabPill: View
     private val tabViews = ArrayList<TextView>()
 
     private val number = StringBuilder()
-    private var page = PAGE_KEYPAD
+    private var page = PAGE_NONE
+    private var lastBadge = -1
     private var groups: List<ContactGroup>? = null
     private var recents: List<Contacts.Recent>? = null
     private var nameToken = 0
@@ -152,17 +154,29 @@ class DialerActivity : Activity() {
 
         content.addView(header(), LinearLayout.LayoutParams(-1, dp(44f)))
 
-        val tabs = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER
-            background = Glass.panel(this@DialerActivity, 24f)
-            setPadding(dp(4f), dp(4f), dp(4f), dp(4f))
+        val tabs = FrameLayout(this).apply { background = Glass.panel(this@DialerActivity, 26f) }
+        tabPill = View(this).apply {
+            background = Glass.panel(this@DialerActivity, 20f, strength = 2.6f)
+            alpha = 0f
         }
-        tabs.addView(tab(getString(R.string.tab_keypad), PAGE_KEYPAD), LinearLayout.LayoutParams(0, dp(36f), 1f))
-        tabs.addView(tab(getString(R.string.tab_recents), PAGE_RECENTS), LinearLayout.LayoutParams(0, dp(36f), 1f))
-        tabs.addView(tab(getString(R.string.tab_people), PAGE_CONTACTS), LinearLayout.LayoutParams(0, dp(36f), 1f))
-        tabs.addView(tab(getString(R.string.tab_stars), PAGE_STARS), LinearLayout.LayoutParams(0, dp(36f), 1f))
-        content.addView(tabs, LinearLayout.LayoutParams(-1, dp(44f)).apply { topMargin = dp(10f) })
+        tabs.addView(tabPill, FrameLayout.LayoutParams(0, -1).apply { setMargins(dp(4f), dp(4f), 0, dp(4f)) })
+        val track = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        track.addView(tab(getString(R.string.tab_keypad), PAGE_KEYPAD), LinearLayout.LayoutParams(0, -1, 1f))
+        track.addView(tab(getString(R.string.tab_recents), PAGE_RECENTS), LinearLayout.LayoutParams(0, -1, 1f))
+        track.addView(tab(getString(R.string.tab_people), PAGE_CONTACTS), LinearLayout.LayoutParams(0, -1, 1f))
+        track.addView(tab(getString(R.string.tab_stars), PAGE_STARS), LinearLayout.LayoutParams(0, -1, 1f))
+        tabs.addView(track, FrameLayout.LayoutParams(-1, -1))
+        tabs.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+            val unit = (v.width - dp(8f)) / 4
+            if (unit <= 0) return@addOnLayoutChangeListener
+            val lp = tabPill.layoutParams as FrameLayout.LayoutParams
+            if (lp.width != unit) {
+                lp.width = unit
+                tabPill.layoutParams = lp
+            }
+            placePill(page, false)
+        }
+        content.addView(tabs, LinearLayout.LayoutParams(-1, dp(46f)).apply { topMargin = dp(12f) })
 
         keypadPage = buildKeypad()
         recentsPage = buildListPage { recentsList = it }
@@ -186,7 +200,7 @@ class DialerActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_VERTICAL
         }
-        title.addView(Glass.text(this, "DOT", 20f, Glass.INK, dot = true, spacing = 0.14f))
+        title.addView(Glass.text(this, "DOT", 22f, Glass.INK, dot = true, spacing = 0.16f))
         title.addView(Glass.label(this, getString(R.string.app_tagline), Glass.DIM))
         row.addView(title, LinearLayout.LayoutParams(0, -2, 1f))
 
@@ -203,6 +217,7 @@ class DialerActivity : Activity() {
             isClickable = true
             isFocusable = true
             contentDescription = getString(R.string.settings_title)
+            Motion.press(this, 0.93f)
             setOnClickListener {
                 Glass.tap(this)
                 startActivity(Intent(this@DialerActivity, SettingsActivity::class.java))
@@ -218,7 +233,8 @@ class DialerActivity : Activity() {
             isClickable = true
             isFocusable = true
             contentDescription = getString(R.string.missed_title)
-            setOnClickListener { missedAction() }
+            Motion.press(this, 0.88f)
+            setOnClickListener { Glass.tap(this); missedAction() }
         }
         right.addView(badge, LinearLayout.LayoutParams(dp(22f), dp(22f)).apply {
             setMargins(dp(6f), 0, 0, 0)
@@ -241,17 +257,51 @@ class DialerActivity : Activity() {
     }
 
     private fun showPage(index: Int) {
+        val changed = page != index
         page = index
-        keypadPage.visibility = if (index == PAGE_KEYPAD) View.VISIBLE else View.GONE
-        recentsPage.visibility = if (index == PAGE_RECENTS) View.VISIBLE else View.GONE
-        contactsPage.visibility = if (index == PAGE_CONTACTS) View.VISIBLE else View.GONE
-        starsPage.visibility = if (index == PAGE_STARS) View.VISIBLE else View.GONE
+        val all = listOf(keypadPage, recentsPage, contactsPage, starsPage)
+        all.forEachIndexed { i, view -> view.visibility = if (i == index) View.VISIBLE else View.GONE }
         tabViews.forEachIndexed { i, view ->
             val on = i == index
             view.setTextColor(if (on) Glass.INK else Glass.MUTED)
-            view.background = if (on) Glass.panel(this, 20f, strength = 1.9f) else null
+            view.animate().cancel()
+            view.scaleX = 1f
+            view.scaleY = 1f
+            if (on) {
+                view.scaleX = 0.93f
+                view.scaleY = 0.93f
+                view.animate().scaleX(1f).scaleY(1f)
+                    .setDuration(260).setInterpolator(Motion.spring).start()
+            }
+        }
+        placePill(index, changed)
+        val target = all[index]
+        target.animate().cancel()
+        if (changed) {
+            target.alpha = 0f
+            target.translationY = dp(10f).toFloat()
+            target.animate().alpha(1f).translationY(0f)
+                .setDuration(220).setInterpolator(Motion.out).start()
+        } else {
+            target.alpha = 1f
+            target.translationY = 0f
         }
         refreshCurrentPage()
+    }
+
+    /** Slide the glass pill under the tab that is now showing. */
+    private fun placePill(index: Int, animate: Boolean) {
+        if (!::tabPill.isInitialized || index < 0) return
+        val unit = tabPill.layoutParams?.width ?: 0
+        if (unit <= 0) return
+        val x = dp(4f) + unit * index.toFloat()
+        tabPill.alpha = 1f
+        if (animate) {
+            tabPill.animate().x(x).setDuration(250).setInterpolator(Motion.out).start()
+        } else {
+            tabPill.animate().cancel()
+            tabPill.x = x
+        }
     }
 
     private fun refreshCurrentPage() = when (page) {
@@ -270,7 +320,7 @@ class DialerActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             background = Glass.panel(this@DialerActivity, 30f)
-            setPadding(dp(16f), dp(10f), dp(8f), dp(10f))
+            setPadding(dp(14f), dp(8f), dp(10f), dp(8f))
         }
         avatar = ImageView(this).apply {
             scaleType = ImageView.ScaleType.FIT_CENTER
@@ -279,7 +329,7 @@ class DialerActivity : Activity() {
         card.addView(avatar, LinearLayout.LayoutParams(dp(44f), dp(44f)).apply { rightMargin = dp(12f) })
 
         val stack = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_VERTICAL }
-        display = Glass.text(this, getString(R.string.enter_number), 29f, Glass.DIM)
+        display = Glass.text(this, getString(R.string.enter_number), 31f, Glass.DIM)
         display.typeface = Glass.light(this)
         display.maxLines = 1
         display.ellipsize = TextUtils.TruncateAt.START
@@ -299,6 +349,7 @@ class DialerActivity : Activity() {
             isClickable = true
             isFocusable = true
             contentDescription = getString(R.string.delete_digit)
+            Motion.press(this, 0.9f)
             setOnClickListener {
                 if (number.isNotEmpty()) {
                     Glass.tap(this)
@@ -312,8 +363,8 @@ class DialerActivity : Activity() {
                 true
             }
         }
-        card.addView(erase, LinearLayout.LayoutParams(dp(46f), dp(46f)))
-        page.addView(card, LinearLayout.LayoutParams(-1, dp(76f)))
+        card.addView(erase, LinearLayout.LayoutParams(dp(48f), dp(48f)))
+        page.addView(card, LinearLayout.LayoutParams(-1, dp(86f)))
 
         val keypad = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         val keys = listOf(
@@ -354,19 +405,21 @@ class DialerActivity : Activity() {
             isClickable = true
             isFocusable = true
             contentDescription = getString(R.string.call)
+            Motion.press(this, 0.97f)
             setOnClickListener { Glass.tap(this); dial(number.toString()) }
         }
-        page.addView(callButton, LinearLayout.LayoutParams(-1, dp(56f)).apply { topMargin = dp(8f) })
+        page.addView(callButton, LinearLayout.LayoutParams(-1, dp(58f)).apply { topMargin = dp(10f) })
         return page
     }
 
     private fun key(digit: String, letters: String) = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
         gravity = Gravity.CENTER
-        background = Glass.panel(this@DialerActivity, 22f)
+        background = Glass.key(this@DialerActivity, 24f)
         isClickable = true
         isFocusable = true
-        addView(Glass.text(this@DialerActivity, digit, 25f, Glass.INK).apply {
+        Motion.press(this, 0.93f)
+        addView(Glass.text(this@DialerActivity, digit, 26f, Glass.INK).apply {
             gravity = Gravity.CENTER
             typeface = Glass.light(this@DialerActivity)
         })
@@ -405,9 +458,21 @@ class DialerActivity : Activity() {
         display.setTextColor(if (text.isEmpty()) Glass.DIM else Glass.INK)
         callButton.alpha = if (text.isEmpty()) 0.5f else 1f
         activeMatch = null
-        matched.text = ""
+        showMatched("")
         avatar.visibility = View.GONE
         if (text.isNotEmpty()) lookupName(text)
+    }
+
+    /** The matched name eases in under the number instead of blinking into place. */
+    private fun showMatched(label: String) {
+        if (matched.text.toString() == label) return
+        matched.text = label
+        if (label.isEmpty()) return
+        matched.animate().cancel()
+        matched.alpha = 0f
+        matched.translationY = dp(4f).toFloat()
+        matched.animate().alpha(1f).translationY(0f)
+            .setDuration(200).setInterpolator(Motion.out).start()
     }
 
     private fun lookupName(text: String) {
@@ -460,11 +525,11 @@ class DialerActivity : Activity() {
             ?.firstOrNull { (_, nameT9) -> nameT9.startsWith(text) }
         if (match != null) {
             activeMatch = match.first
-            matched.text = match.first.name.uppercase()
+            showMatched(match.first.name.uppercase())
             showTypedAvatar(match.first.key)
         } else {
             activeMatch = null
-            matched.text = ""
+            showMatched("")
             avatar.visibility = View.GONE
         }
     }
@@ -477,7 +542,7 @@ class DialerActivity : Activity() {
                 if (isFinishing) return@runOnUiThread
                 if (searchToken != ftoken) return@runOnUiThread
                 if (found != null) {
-                    matched.text = found.uppercase()
+                    showMatched(found.uppercase())
                     showTypedAvatar(Store.key(text))
                 }
             }
@@ -556,6 +621,7 @@ class DialerActivity : Activity() {
         if (rows.isEmpty()) { recentsList.addView(empty(getString(R.string.no_calls))); return }
         val grouped = rows.groupBy { it.key }.mapValues { it.value.first() }.toList()
             .sortedByDescending { it.second.date }
+        val cards = ArrayList<View>()
         grouped.forEach { (_, recent) ->
             val count = rows.filter { it.key == recent.key }.size
             val missed = recent.type == android.provider.CallLog.Calls.MISSED_TYPE ||
@@ -565,14 +631,16 @@ class DialerActivity : Activity() {
                 DateUtils.getRelativeTimeSpanString(
                     recent.date, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS
                 )
-            recentsList.addView(row(
+            cards += row(
                 avatarFor(recent.key, label, recent.photoUri, dp(44f)),
                 label, detail,
                 if (missed) Glass.RED else Glass.INK,
                 onClick = { dial(recent.number) },
                 onLong = { putNumber(recent.number) }
-            ))
+            )
         }
+        cards.forEach { recentsList.addView(it) }
+        Motion.enterAll(cards.take(12))
     }
 
     private fun fillPeople(query: String) {
@@ -605,15 +673,18 @@ class DialerActivity : Activity() {
                 (digits.isNotEmpty() && it.numbers.any { num -> num.filter { c -> c.isDigit() }.contains(digits) })
         }
         if (shown.isEmpty()) { contactsList.addView(empty(getString(R.string.no_contacts))); return }
+        val cards = ArrayList<View>()
         shown.take(80).forEach { group ->
             val numbersText = group.numbers.joinToString(", ") { it }
-            contactsList.addView(row(
+            cards += row(
                 avatarFor(group.key, group.name, group.photoUri, dp(44f)),
                 group.name, numbersText, Glass.INK,
                 onClick = { openGroup(group) },
                 onLong = { dialTarget(group.mainNumber) }
-            ))
+            )
         }
+        cards.forEach { contactsList.addView(it) }
+        Motion.enterAll(cards.take(12))
     }
 
     private fun fillStars() {
@@ -638,25 +709,36 @@ class DialerActivity : Activity() {
             starsGrid.addView(empty(getString(R.string.no_stars)))
             return
         }
+        val lines = ArrayList<View>()
         favourites.chunked(4).forEach { chunk ->
             val line = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
             chunk.forEach { group ->
-                line.addView(starCell(group), LinearLayout.LayoutParams(0, dp(96f), 1f))
+                line.addView(starCell(group), LinearLayout.LayoutParams(0, dp(104f), 1f).apply {
+                    setMargins(dp(3f), dp(3f), dp(3f), dp(3f))
+                })
             }
-            repeat(4 - chunk.size) { line.addView(View(this), LinearLayout.LayoutParams(0, dp(96f), 1f)) }
+            repeat(4 - chunk.size) {
+                line.addView(View(this), LinearLayout.LayoutParams(0, dp(104f), 1f).apply {
+                    setMargins(dp(3f), dp(3f), dp(3f), dp(3f))
+                })
+            }
+            lines += line
             starsGrid.addView(line, LinearLayout.LayoutParams(-1, -2))
         }
+        Motion.enterAll(lines, 34, 12f)
     }
 
     private fun starCell(group: ContactGroup) = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
         gravity = Gravity.CENTER
+        background = Glass.panel(this@DialerActivity, 20f)
         isClickable = true
         isFocusable = true
+        Motion.press(this, 0.95f)
         addView(ImageView(this@DialerActivity).apply {
-            setImageBitmap(avatarFor(group.key, group.name, group.photoUri, dp(62f)))
+            setImageBitmap(avatarFor(group.key, group.name, group.photoUri, dp(56f)))
             scaleType = ImageView.ScaleType.FIT_CENTER
-        }, LinearLayout.LayoutParams(dp(62f), dp(62f)))
+        }, LinearLayout.LayoutParams(dp(56f), dp(56f)))
         addView(Glass.text(this@DialerActivity, group.name.substringBefore(' '), 10f, Glass.MUTED).apply {
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
@@ -681,6 +763,7 @@ class DialerActivity : Activity() {
             setPadding(dp(12f), dp(10f), dp(14f), dp(10f))
             isClickable = true
             isFocusable = true
+            Motion.press(this, 0.985f)
             setOnClickListener { Glass.tap(this); onClick() }
             setOnLongClickListener { Glass.tap(this); onLong(); true }
         }
@@ -784,8 +867,9 @@ class DialerActivity : Activity() {
     private fun openGroup(group: ContactGroup) {
         closeSheet()
         activeMatch = null
+        val dim = android.graphics.drawable.ColorDrawable(Color.argb(0, 3, 4, 6))
         val overlay = FrameLayout(this).apply {
-            background = android.graphics.drawable.ColorDrawable(Color.argb(168, 3, 4, 6))
+            background = dim
             isClickable = true
             setOnClickListener { closeSheet() }
         }
@@ -861,9 +945,20 @@ class DialerActivity : Activity() {
             setMargins(dp(14f), 0, dp(14f), bottomInset + dp(14f))
         })
         root.addView(overlay, FrameLayout.LayoutParams(-1, -1))
+        android.animation.ValueAnimator.ofInt(0, 168).apply {
+            duration = 240
+            addUpdateListener { anim ->
+                dim.alpha = (anim.animatedValue as Int).coerceIn(0, 255)
+                overlay.invalidate()
+            }
+            start()
+        }
         card.alpha = 0f
-        card.translationY = dp(36f).toFloat()
-        card.animate().alpha(1f).translationY(0f).setDuration(220).start()
+        card.translationY = dp(44f).toFloat()
+        card.scaleX = 0.94f
+        card.scaleY = 0.94f
+        card.animate().alpha(1f).translationY(0f).scaleX(1f).scaleY(1f)
+            .setDuration(300).setInterpolator(Motion.spring).start()
         sheet = overlay
 
         // The address-book photo is turned into dots off the main thread, then fades in.
@@ -919,6 +1014,8 @@ class DialerActivity : Activity() {
         val show = n > 0 && Store.missedNotifications(this) && Store.badgeEnabled(this)
         badge.visibility = if (show) View.VISIBLE else View.GONE
         badge.text = if (show) n.toString() else ""
+        if (show && n != lastBadge) Motion.pop(badge)
+        lastBadge = if (show) n else -1
     }
 
     private fun missedAction() {
@@ -1032,6 +1129,7 @@ class DialerActivity : Activity() {
     }
 
     private companion object {
+        const val PAGE_NONE = -1
         const val PAGE_KEYPAD = 0
         const val PAGE_RECENTS = 1
         const val PAGE_CONTACTS = 2

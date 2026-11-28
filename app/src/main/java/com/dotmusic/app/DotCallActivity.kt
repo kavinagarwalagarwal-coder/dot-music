@@ -43,6 +43,9 @@ class DotCallActivity : Activity() {
     private var padOpen = false
 
     private var number = ""
+    private var muteOn: Boolean? = null
+    private var speakerOn: Boolean? = null
+    private var holdOn: Boolean? = null
     private var name: String? = null
     private var art: Bitmap? = null
     private var lookedUp = ""
@@ -169,6 +172,13 @@ class DotCallActivity : Activity() {
         })
         root.addView(bottom, FrameLayout.LayoutParams(-1, -1))
 
+        topBar.alpha = 0f
+        topBar.animate().alpha(1f).setDuration(360).start()
+        panel.translationY = dp(64f).toFloat()
+        panel.alpha = 0f
+        panel.animate().translationY(0f).alpha(1f)
+            .setDuration(380).setInterpolator(Motion.out).start()
+
         root.setOnApplyWindowInsetsListener { _, insets ->
             @Suppress("DEPRECATION")
             val cutout = if (Build.VERSION.SDK_INT >= 28) insets.displayCutout?.safeInsetTop ?: 0 else 0
@@ -203,6 +213,7 @@ class DotCallActivity : Activity() {
             isClickable = true
             isFocusable = true
             contentDescription = label
+            Motion.press(this, 0.95f)
             setOnClickListener { Glass.tap(this); action() }
         }
 
@@ -218,6 +229,7 @@ class DotCallActivity : Activity() {
         isClickable = true
         isFocusable = true
         contentDescription = label
+        Motion.press(this, 0.9f)
         setOnClickListener { Glass.tap(this); action() }
     }
 
@@ -278,9 +290,23 @@ class DotCallActivity : Activity() {
     }
 
     private fun showKeypad(open: Boolean) {
+        if (padOpen == open) return
         padOpen = open
-        keypad.visibility = if (open) View.VISIBLE else View.GONE
-        panel.visibility = if (open) View.GONE else View.VISIBLE
+        if (open) {
+            keypad.visibility = View.VISIBLE
+            panel.visibility = View.GONE
+            keypad.translationY = dp(28f).toFloat()
+            keypad.alpha = 0f
+            keypad.animate().translationY(0f).alpha(1f)
+                .setDuration(240).setInterpolator(Motion.out).start()
+        } else {
+            keypad.visibility = View.GONE
+            panel.visibility = View.VISIBLE
+            panel.translationY = dp(24f).toFloat()
+            panel.alpha = 0f
+            panel.animate().translationY(0f).alpha(1f)
+                .setDuration(240).setInterpolator(Motion.out).start()
+        }
     }
 
     // ---------------------------------------------------------------- the call
@@ -352,9 +378,19 @@ class DotCallActivity : Activity() {
         }.uppercase()
         record.progress = ((seconds / 60f) / 34f).coerceIn(0f, 1f)
 
-        paint(mute, muted, getString(R.string.unmute), getString(R.string.mute))
-        paint(speaker, loud, getString(R.string.speaker), getString(R.string.speaker))
-        paint(hold, held, getString(R.string.unhold), getString(R.string.hold))
+        // Backgrounds are only rebuilt when the state actually flips, not once a second.
+        if (muteOn != muted) {
+            muteOn = muted
+            paint(mute, muted, getString(R.string.unmute), getString(R.string.mute))
+        }
+        if (speakerOn != loud) {
+            speakerOn = loud
+            paint(speaker, loud, getString(R.string.speaker), getString(R.string.speaker))
+        }
+        if (holdOn != held) {
+            holdOn = held
+            paint(hold, held, getString(R.string.unhold), getString(R.string.hold))
+        }
 
         ringingRow.visibility = if (incoming) View.VISIBLE else View.GONE
         activeRow.visibility = if (incoming) View.GONE else View.VISIBLE

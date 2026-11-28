@@ -165,6 +165,13 @@ class OnboardingActivity : Activity() {
                 primary(getString(R.string.start)) { finishTour() }
             }
         }
+        heading.alpha = 0f
+        heading.translationY = dp(8f).toFloat()
+        heading.animate().alpha(1f).translationY(0f)
+            .setDuration(240).setInterpolator(Motion.out).start()
+        body.alpha = 0f
+        body.animate().alpha(1f).setDuration(320).setStartDelay(60).start()
+        Motion.enter(actions, 90, 10f)
     }
 
     private fun previewArt(): android.graphics.Bitmap {
@@ -188,6 +195,7 @@ class OnboardingActivity : Activity() {
         background = Glass.fill(this@OnboardingActivity, Glass.GREEN, 28f)
         isClickable = true
         isFocusable = true
+        Motion.press(this, 0.97f)
         setOnClickListener { Glass.tap(this); action() }
     }, LinearLayout.LayoutParams(-1, dp(54f)).apply { topMargin = dp(8f) })
 
@@ -201,6 +209,7 @@ class OnboardingActivity : Activity() {
         background = Glass.panel(this@OnboardingActivity, 24f)
         isClickable = true
         isFocusable = true
+        Motion.press(this, 0.98f)
         setOnClickListener { Glass.tap(this); action() }
     }, LinearLayout.LayoutParams(-1, dp(44f)).apply { topMargin = dp(8f) })
 
@@ -213,6 +222,7 @@ class OnboardingActivity : Activity() {
             setPadding(dp(16f), 0, dp(16f), 0)
             isClickable = true
             isFocusable = true
+            Motion.press(this, 0.98f)
             addView(Glass.text(this@OnboardingActivity, getString(label), 13f, Glass.INK), LinearLayout.LayoutParams(0, -2, 1f))
             addView(Glass.text(
                 this@OnboardingActivity,
@@ -235,6 +245,7 @@ class OnboardingActivity : Activity() {
         setPadding(dp(16f), 0, dp(16f), 0)
         isClickable = true
         isFocusable = true
+        Motion.press(this, 0.98f)
         addView(Glass.text(this@OnboardingActivity, getString(R.string.white_dots), 13f, Glass.INK), LinearLayout.LayoutParams(0, -2, 1f))
         val state = Glass.text(this@OnboardingActivity, "", 10f, Glass.MUTED, dot = true)
         addView(state)

@@ -33,6 +33,7 @@ class SettingsActivity : Activity() {
     private lateinit var missedNotificationsRow: LinearLayout
     private lateinit var badgeRow: LinearLayout
     private lateinit var missedSoundRow: LinearLayout
+    private val notes = HashMap<LinearLayout, TextView>()
 
     private fun dp(v: Float) = Glass.px(this, v)
 
@@ -95,34 +96,43 @@ class SettingsActivity : Activity() {
         scroll.addView(list, FrameLayout.LayoutParams(-1, -2))
         column.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(12f) })
 
+        val rows = ArrayList<View>()
         list.addView(section(getString(R.string.section_phone)))
-        phoneRow = setting(getString(R.string.default_phone), "") { requestDialerRole() }
+        phoneRow = setting(getString(R.string.default_phone), "", "PH") { requestDialerRole() }
         list.addView(phoneRow)
-        speedDialRow = setting(getString(R.string.speed_dial_desc), speedDialNote()) { pickSpeedDial() }
+        speedDialRow = setting(getString(R.string.speed_dial_desc), speedDialNote(), "1") { pickSpeedDial() }
         list.addView(speedDialRow)
         list.addView(infoLine(getString(R.string.voicemail_longpress)))
+        rows += phoneRow
+        rows += speedDialRow
 
         list.addView(section(getString(R.string.section_look)))
-        dotsRow = setting(getString(R.string.white_dots), "") {
+        dotsRow = setting(getString(R.string.white_dots), "", "DO") {
             Store.setWhiteDots(this, !Store.whiteDots(this))
             refreshRows()
         }
         list.addView(dotsRow)
-        hapticsRow = setting(getString(R.string.haptics), hapticsNote()) { toggleHaptics() }
+        hapticsRow = setting(getString(R.string.haptics), hapticsNote(), "HA") { toggleHaptics() }
         list.addView(hapticsRow)
-        vibrationRow = setting(getString(R.string.vibration), vibrationNote()) { toggleVibration() }
+        vibrationRow = setting(getString(R.string.vibration), vibrationNote(), "VI") { toggleVibration() }
         list.addView(vibrationRow)
+        rows += dotsRow
+        rows += hapticsRow
+        rows += vibrationRow
 
         list.addView(section(getString(R.string.section_missed)))
-        missedNotificationsRow = setting(getString(R.string.missed_notifications), missedNotificationsNote()) { toggleMissedNotifications() }
+        missedNotificationsRow = setting(getString(R.string.missed_notifications), missedNotificationsNote(), "MI") { toggleMissedNotifications() }
         list.addView(missedNotificationsRow)
-        badgeRow = setting(getString(R.string.badge), badgeNote()) { toggleBadge() }
+        badgeRow = setting(getString(R.string.badge), badgeNote(), "BA") { toggleBadge() }
         list.addView(badgeRow)
-        missedSoundRow = setting(getString(R.string.missed_sound_desc), missedSoundNote()) { pickMissedSound() }
+        missedSoundRow = setting(getString(R.string.missed_sound_desc), missedSoundNote(), "SO") { pickMissedSound() }
         list.addView(missedSoundRow)
+        rows += missedNotificationsRow
+        rows += badgeRow
+        rows += missedSoundRow
 
         list.addView(section(getString(R.string.section_contacts)))
-        list.addView(setting(getString(R.string.custom_photos), getString(R.string.custom_photos_note)) {
+        val photos = setting(getString(R.string.custom_photos), getString(R.string.custom_photos_note), "IM") {
             AlertDialog.Builder(this)
                 .setTitle(R.string.custom_photos)
                 .setMessage(R.string.clear_photos_note)
@@ -132,16 +142,24 @@ class SettingsActivity : Activity() {
                 }
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
-        })
-        list.addView(setting(getString(R.string.replay_tour), "") {
+        }
+        list.addView(photos)
+        val tour = setting(getString(R.string.replay_tour), "", "TO") {
             startActivity(Intent(this, OnboardingActivity::class.java).putExtra(OnboardingActivity.EXTRA_REPLAY, true))
-        })
+        }
+        list.addView(tour)
+        rows += photos
+        rows += tour
 
         list.addView(section(getString(R.string.section_updates)))
-        list.addView(setting(
+        val updates = setting(
             getString(R.string.check_updates),
-            getString(R.string.version, Updates.installedName(this))
-        ) { checkForUpdates() })
+            getString(R.string.version, Updates.installedName(this)),
+            "UP"
+        ) { checkForUpdates() }
+        list.addView(updates)
+        rows += updates
+        Motion.enterAll(rows, 26, 12f)
 
         list.addView(Glass.text(this, getString(R.string.privacy_note), 12f, Glass.DIM).apply {
             setLineSpacing(dp(3f).toFloat(), 1f)
@@ -150,45 +168,60 @@ class SettingsActivity : Activity() {
         return root
     }
 
-    private fun section(label: String) = Glass.label(this, label, Glass.GREEN).apply {
-        setPadding(dp(6f), dp(16f), dp(6f), dp(8f))
+    private fun section(label: String): View {
+        val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        box.addView(View(this).apply { background = Glass.hairline(this@SettingsActivity) },
+            LinearLayout.LayoutParams(-1, dp(1f)).apply { topMargin = dp(14f) })
+        box.addView(Glass.label(this, label, Glass.GREEN).apply {
+            setPadding(dp(6f), dp(10f), dp(6f), dp(8f))
+        })
+        return box
     }
 
-    private fun setting(title: String, note: String, onClick: () -> Unit): LinearLayout {
+    private fun setting(title: String, note: String, glyph: String, onClick: () -> Unit): LinearLayout {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            background = Glass.panel(this@SettingsActivity, 24f)
-            setPadding(dp(16f), dp(12f), dp(16f), dp(12f))
+            background = Glass.panel(this@SettingsActivity, 22f)
+            setPadding(dp(12f), dp(11f), dp(14f), dp(11f))
             isClickable = true
             isFocusable = true
+            Motion.press(this, 0.99f)
             setOnClickListener { Glass.tap(this); onClick() }
         }
+        row.addView(TextView(this).apply {
+            text = glyph
+            typeface = Glass.doto(this@SettingsActivity)
+            textSize = 11f
+            letterSpacing = 0.08f
+            gravity = Gravity.CENTER
+            setTextColor(Glass.GREEN)
+            background = Glass.chip(this@SettingsActivity, Glass.GREEN, 12f)
+        }, LinearLayout.LayoutParams(dp(34f), dp(34f)).apply { rightMargin = dp(12f) })
+
         val stack = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         stack.addView(Glass.text(this@SettingsActivity, title, 14f, Glass.INK))
-        stack.addView(
-            Glass.text(this@SettingsActivity, note, 11f, Glass.MUTED, dot = true, spacing = 0.06f).apply {
-                setPadding(0, dp(3f), 0, 0)
-            }
-        )
+        val noteView = Glass.text(this@SettingsActivity, note, 11f, Glass.MUTED, dot = true, spacing = 0.06f).apply {
+            setPadding(0, dp(3f), 0, 0)
+        }
+        stack.addView(noteView)
+        notes[row] = noteView
         row.addView(stack, LinearLayout.LayoutParams(0, -2, 1f))
+        row.addView(Glass.text(this@SettingsActivity, "\u203A", 19f, Glass.DIM))
         row.layoutParams = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8f) }
         return row
     }
 
     private fun refreshRows() {
-        noteOf(phoneRow).text = if (isDefaultDialer()) getString(R.string.is_default_phone) else getString(R.string.make_default)
-        noteOf(dotsRow).text = if (Store.whiteDots(this)) getString(R.string.on) else getString(R.string.off)
-        noteOf(speedDialRow).text = speedDialNote()
-        noteOf(hapticsRow).text = hapticsNote()
-        noteOf(vibrationRow).text = vibrationNote()
-        noteOf(missedNotificationsRow).text = missedNotificationsNote()
-        noteOf(badgeRow).text = badgeNote()
-        noteOf(missedSoundRow).text = missedSoundNote()
+        notes[phoneRow]?.text = if (isDefaultDialer()) getString(R.string.is_default_phone) else getString(R.string.make_default)
+        notes[dotsRow]?.text = if (Store.whiteDots(this)) getString(R.string.on) else getString(R.string.off)
+        notes[speedDialRow]?.text = speedDialNote()
+        notes[hapticsRow]?.text = hapticsNote()
+        notes[vibrationRow]?.text = vibrationNote()
+        notes[missedNotificationsRow]?.text = missedNotificationsNote()
+        notes[badgeRow]?.text = badgeNote()
+        notes[missedSoundRow]?.text = missedSoundNote()
     }
-
-    private fun noteOf(row: LinearLayout): TextView =
-        (row.getChildAt(0) as LinearLayout).getChildAt(1) as TextView
 
     private fun infoLine(text: String): View = Glass.text(this, text, 11f, Glass.MUTED).apply {
         setPadding(dp(16f), dp(10f), dp(16f), dp(10f))
